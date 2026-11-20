@@ -119,13 +119,13 @@
       <!-- Tab Switcher: Harian | Mingguan | Bulanan -->
       <div class="grid grid-cols-3 gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
         <button id="tabDaily" onclick="switchChartPeriod('daily')" class="py-1.5 rounded-lg text-xs transition tab-inactive">
-          Harian (24J)
+          Harian (Per Jam)
         </button>
         <button id="tabWeekly" onclick="switchChartPeriod('weekly')" class="py-1.5 rounded-lg text-xs transition tab-active">
-          Mingguan (7H)
+          Mingguan (7 Hari)
         </button>
         <button id="tabMonthly" onclick="switchChartPeriod('monthly')" class="py-1.5 rounded-lg text-xs transition tab-inactive">
-          Bulanan (30H)
+          Bulanan (12 Bln)
         </button>
       </div>
 
@@ -473,14 +473,20 @@
       }
     }
 
-    function scheduleMidnightChartRefresh() {
+    function scheduleHourlyAndMidnightChartRefresh() {
       const now = new Date();
-      const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
-      const msUntilMidnight = nextMidnight.getTime() - now.getTime();
+      // Schedule next exact top-of-hour refresh (e.g., 01:00, 02:00, ..., 00:00)
+      const nextHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1, 0, 3);
+      const msUntilNextHour = Math.max(5000, nextHour.getTime() - now.getTime());
       setTimeout(async () => {
         await refreshAnalytics();
-        scheduleMidnightChartRefresh();
-      }, msUntilMidnight);
+        scheduleHourlyAndMidnightChartRefresh();
+      }, msUntilNextHour);
+
+      // Also silently update today's live kWh / weekly / monthly numbers every 30s without chart animation
+      setInterval(() => {
+        if (appToken) refreshAnalytics();
+      }, 30000);
     }
 
     function switchChartPeriod(period) {
@@ -509,30 +515,32 @@
       let secondLabel = 'Hemat AI SaveIn (kWh)';
 
       if (activePeriod === 'daily') {
-        document.getElementById('lblPeriodKwh').innerText = 'Hari Ini';
-        document.getElementById('valPeriodKwh').innerText = s.today_kwh ?? 0;
-        document.getElementById('valPeriodCost').innerText = (s.today_cost_rp || 0).toLocaleString('id-ID');
+        const hourly = analyticsData.daily_hourly || [];
+        const sumHourlyKwh = hourly.reduce((acc, h) => acc + (h.kwh || 0), 0);
+        const displayTodayKwh = Math.max(s.today_kwh || 0, Math.round(sumHourlyKwh * 100) / 100);
+        document.getElementById('lblPeriodKwh').innerText = 'Hari Ini (00:00+)';
+        document.getElementById('valPeriodKwh').innerText = displayTodayKwh;
+        document.getElementById('valPeriodCost').innerText = Math.round(displayTodayKwh * rate).toLocaleString('id-ID');
         document.getElementById('valPeriodSaved').innerText = s.today_ai_saved_kwh ?? 0;
         document.getElementById('valPeriodHours').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
         document.getElementById('workHoursToday').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
-        document.getElementById('chartSubtitle').innerText = 'Rata-rata Daya Aktual (Watt) per Jam Hari Ini (Jadwal Refresh: 00:00)';
+        document.getElementById('chartSubtitle').innerText = 'Pemakaian Listrik per Jam Hari Ini (Update Tiap Jam & Reset 00:00)';
 
-        const hourly = analyticsData.daily_hourly || [];
         labels = hourly.map(h => h.label);
-        mainValues = hourly.map(h => h.avg_watts);
-        secondValues = hourly.map(h => h.peak_watts);
-        mainLabel = 'Rata-rata (Watt)';
-        secondLabel = 'Puncak (Watt)';
+        mainValues = hourly.map(h => h.kwh);
+        secondValues = hourly.map(h => +(h.avg_watts / 1000.0).toFixed(3));
+        mainLabel = 'Konsumsi Jam Ini (kWh)';
+        secondLabel = 'Daya Rata-rata (kW)';
 
-        const activeHours = hourly.filter(h => h.avg_watts > 0);
+        const activeHours = hourly.filter(h => h.avg_watts > 0 || h.kwh > 0);
         tableEl.innerHTML = activeHours.length > 0
-          ? activeHours.map(h => `
-              <div class="flex justify-between py-1 border-b border-slate-800/60">
-                <span class="text-slate-400">Jam ${h.label}</span>
-                <span>Suhu: <b>${h.avg_temp ?? '--'}&deg;C</b></span>
-                <span class="text-emerald-400 font-bold">Avg ${h.avg_watts} W (Max ${h.peak_watts} W)</span>
+          ? [...activeHours].reverse().map(h => `
+              <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+                <span class="text-slate-300 font-medium">Jam ${h.label}</span>
+                <span class="text-slate-400">Avg ${h.avg_watts} W (Max ${h.peak_watts} W)</span>
+                <span class="text-emerald-400 font-bold">${h.kwh} kWh (Rp ${Math.round(h.kwh * rate).toLocaleString('id-ID')})</span>
               </div>`).join('')
-          : '<div class="text-slate-500">Data per jam hari ini sedang dikumpulkan...</div>';
+          : '<div class="text-slate-500">Data pemakaian per jam hari ini sedang berjalan...</div>';
 
       } else if (activePeriod === 'weekly') {
         document.getElementById('lblPeriodKwh').innerText = 'Total 7 Hari';
@@ -541,43 +549,45 @@
         document.getElementById('valPeriodSaved').innerText = s.week_ai_saved_kwh ?? 0;
         document.getElementById('valPeriodHours').innerText = `${s.week_work_hours ?? 0} jam`;
         document.getElementById('workHoursToday').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
-        document.getElementById('chartSubtitle').innerText = 'Pemakaian Harian (kWh) & Durasi AC Menyala (Jadwal Refresh: 00:00)';
+        document.getElementById('chartSubtitle').innerText = 'Konsumsi kWh Harian per Tanggal (00:00 - 00:00 • Live Hari Ini)';
 
         const days = analyticsData.weekly || [];
         labels = days.map(d => d.label);
         mainValues = days.map(d => d.kwh);
         secondValues = days.map(d => d.ai_saved_kwh);
 
-        tableEl.innerHTML = [...days].reverse().map(d => `
+        tableEl.innerHTML = [...days].reverse().map((d, idx) => `
           <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
-            <span class="text-slate-300 font-medium">${d.label}</span>
+            <span class="text-slate-300 font-medium">${d.label} (${d.date}) ${idx === 0 ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">LIVE</span>' : ''}</span>
             <span class="text-amber-300 font-semibold">&#9201; ${d.work_duration_str}</span>
             <span class="text-sky-400">Hemat: ${d.ai_saved_kwh} kWh</span>
             <span class="text-emerald-400 font-bold">${d.kwh} kWh (Rp ${Math.round(d.kwh * rate).toLocaleString('id-ID')})</span>
           </div>`).join('');
 
       } else {
-        document.getElementById('lblPeriodKwh').innerText = 'Total 30 Hari';
+        document.getElementById('lblPeriodKwh').innerText = 'Bulan Ini';
         document.getElementById('valPeriodKwh').innerText = s.month_kwh ?? 0;
         document.getElementById('valPeriodCost').innerText = (s.month_cost_rp || 0).toLocaleString('id-ID');
         document.getElementById('valPeriodSaved').innerText = s.month_ai_saved_kwh ?? 0;
         document.getElementById('valPeriodHours').innerText = `${s.month_work_hours ?? 0} jam`;
         document.getElementById('workHoursToday').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
-        document.getElementById('chartSubtitle').innerText = 'Tren Pemakaian & Durasi Nyala Bulanan (Jadwal Refresh: 00:00)';
+        document.getElementById('chartSubtitle').innerText = 'Total Konsumsi Bulanan Tanpa Tanggal (Update Live dari Mingguan)';
 
-        const days = analyticsData.monthly || [];
-        labels = days.map(d => d.label);
-        mainValues = days.map(d => d.kwh);
-        secondValues = days.map(d => d.ai_saved_kwh);
+        const months = analyticsData.monthly || [];
+        labels = months.map(m => m.short_label || m.label);
+        mainValues = months.map(m => m.kwh);
+        secondValues = months.map(m => m.ai_saved_kwh);
 
-        const nonZeroDays = [...days].reverse().filter(d => d.kwh > 0 || d.ai_saved_kwh > 0 || d.work_hours > 0);
-        tableEl.innerHTML = nonZeroDays.map(d => `
-          <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
-            <span class="text-slate-300 font-medium">${d.label} (${d.date})</span>
-            <span class="text-amber-300 font-semibold">&#9201; ${d.work_duration_str}</span>
-            <span class="text-sky-400">Hemat: ${d.ai_saved_kwh} kWh</span>
-            <span class="text-emerald-400 font-bold">${d.kwh} kWh (Rp ${Math.round(d.kwh * rate).toLocaleString('id-ID')})</span>
-          </div>`).join('');
+        const nonZeroMonths = [...months].reverse().filter(m => m.kwh > 0 || m.ai_saved_kwh > 0 || m.work_hours > 0);
+        tableEl.innerHTML = nonZeroMonths.length > 0
+          ? nonZeroMonths.map((m, idx) => `
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-800/60">
+                <span class="text-slate-200 font-bold">${m.label} ${idx === 0 ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">LIVE</span>' : ''}</span>
+                <span class="text-amber-300 font-semibold">&#9201; ${m.work_duration_str}</span>
+                <span class="text-sky-400">Hemat: ${m.ai_saved_kwh} kWh</span>
+                <span class="text-emerald-400 font-bold">${m.kwh} kWh (Rp ${Math.round(m.kwh * rate).toLocaleString('id-ID')})</span>
+              </div>`).join('')
+          : '<div class="text-slate-500">Belum ada akumulasi bulanan.</div>';
       }
 
       const ctx = document.getElementById('energyChart').getContext('2d');
@@ -863,7 +873,7 @@
 
     loadConfigIntoForm();
     refreshAll();
-    scheduleMidnightChartRefresh();
+    scheduleHourlyAndMidnightChartRefresh();
     setInterval(async () => {
       if (!appToken) return;
       try {

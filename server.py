@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import threading
 import time
 from collections import deque
 from pathlib import Path
@@ -103,6 +104,22 @@ def init_clients() -> None:
 
 
 init_clients()
+
+
+def _local_tuya_heartbeat_loop() -> None:
+    """When running locally on the home Wi-Fi, send UPDATEDPS every 4 seconds so the Tuya plug pushes live Watts to Tuya Cloud & Vercel."""
+    if os.environ.get("VERCEL"):
+        return
+    while True:
+        try:
+            if tuya_instance and tuya_instance.local_ip and tuya_instance.local_key:
+                tuya_instance.get_plug_metrics()
+        except Exception:
+            pass
+        time.sleep(4.0)
+
+
+threading.Thread(target=_local_tuya_heartbeat_loop, daemon=True).start()
 
 
 class ConfigUpdateModel(BaseModel):
@@ -263,14 +280,14 @@ def get_combined_status(x_app_token: str | None = Header(default=None)):
 
 @app.get("/api/analytics")
 def get_analytics(x_app_token: str | None = Header(default=None)):
-    """Return Daily (24h hourly), Weekly (7d), and Monthly (30d) energy & cost analytics."""
+    """Return Daily (24h hourly), Weekly (7d by date 00:00-00:00), and Monthly (by month without date) energy & cost analytics."""
     verify_auth(x_app_token)
     global last_tcl_energy_sync_ts, cached_tcl_energy
     cfg = load_config()
     rate = float(cfg.get("pln_rate") or 1444.70)
 
-    # Ensure TCL Cloud historical kWh & Work-Time are synced if DB is fresh (e.g. cold start in Cloud)
-    if tcl_instance and ((time.time() - last_tcl_energy_sync_ts) > 120 or not cached_tcl_energy):
+    # Ensure TCL Cloud historical kWh & Work-Time are synced (every 45s so today's date updates live)
+    if tcl_instance and ((time.time() - last_tcl_energy_sync_ts) > 45 or not cached_tcl_energy):
         try:
             dev_id = cfg.get("tcl_device_id")
             if not dev_id:
@@ -290,14 +307,20 @@ def get_analytics(x_app_token: str | None = Header(default=None)):
 
     hourly_today = db.get_today_hourly_chart()
     weekly_days = db.get_daily_range(7)
-    monthly_days = db.get_daily_range(30)
+    monthly_months = db.get_monthly_by_month()
 
     week_total_kwh = round(sum(d["kwh"] for d in weekly_days), 2)
     week_ai_saved_kwh = round(sum(d["ai_saved_kwh"] for d in weekly_days), 2)
     week_work_hours = round(sum(d["work_hours"] for d in weekly_days), 1)
-    month_total_kwh = round(sum(d["kwh"] for d in monthly_days), 2)
-    month_ai_saved_kwh = round(sum(d["ai_saved_kwh"] for d in monthly_days), 2)
-    month_work_hours = round(sum(d["work_hours"] for d in monthly_days), 1)
+
+    # Current month and year totals aggregated from monthly_months
+    wib_now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=7)))
+    cur_month_key = wib_now.strftime("%Y-%m")
+    cur_month_obj = next((m for m in monthly_months if m["month"] == cur_month_key), None)
+    month_total_kwh = cur_month_obj["kwh"] if cur_month_obj else round(sum(m["kwh"] for m in monthly_months), 2)
+    month_ai_saved_kwh = cur_month_obj["ai_saved_kwh"] if cur_month_obj else round(sum(m["ai_saved_kwh"] for m in monthly_months), 2)
+    month_work_hours = cur_month_obj["work_hours"] if cur_month_obj else round(sum(m["work_hours"] for m in monthly_months), 1)
+
     today_kwh = weekly_days[-1]["kwh"] if weekly_days else 0.0
     today_ai_saved = weekly_days[-1]["ai_saved_kwh"] if weekly_days else 0.0
     today_work_hours = weekly_days[-1]["work_hours"] if weekly_days else 0.0
@@ -323,7 +346,7 @@ def get_analytics(x_app_token: str | None = Header(default=None)):
         },
         "daily_hourly": hourly_today,
         "weekly": weekly_days,
-        "monthly": monthly_days,
+        "monthly": monthly_months,
     }
 
 
