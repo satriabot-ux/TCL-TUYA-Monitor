@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>TCL SaveIn + Tuya Watt Monitor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+    .glass { background: rgba(30, 41, 59, 0.78); backdrop-filter: blur(12px); border: 1px solid rgba(148, 163, 184, 0.15); }
+    .glow-watt { box-shadow: 0 0 30px rgba(16, 185, 129, 0.15); }
+    .glow-ac { box-shadow: 0 0 30px rgba(56, 189, 248, 0.15); }
+    .tab-active { background: #0284c7; color: #ffffff; font-weight: 700; }
+    .tab-inactive { background: rgba(15, 23, 42, 0.6); color: #94a3b8; }
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+  <!-- Header Bar -->
+  <header class="sticky top-0 z-30 glass px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" id="statusDot"></div>
+      <div>
+        <h1 class="text-base font-bold tracking-tight">TCL SaveIn &bull; Smart Monitor</h1>
+        <p class="text-xs text-slate-400" id="subtitleStatus">Menghubungkan ke perangkat...</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="refreshAll()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700">
+        Refresh
+      </button>
+      <button onclick="toggleModal('settingsModal')" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-semibold">
+        Konfigurasi
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
+    <!-- Status Banner -->
+    <div id="alertBanner" class="hidden rounded-xl p-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs"></div>
+
+    <!-- Real-time Watt Meter Card (Tuya Smart Plug) -->
+    <section class="glass glow-watt rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs uppercase tracking-wider text-emerald-400 font-semibold">Tuya Smart Plug &bull; Daya Aktual</span>
+        <span id="plugSourceBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Real-Time</span>
+      </div>
+
+      <div class="flex items-baseline justify-between">
+        <div>
+          <div class="flex items-baseline gap-1.5">
+            <span id="wattValue" class="text-5xl font-extrabold tracking-tight text-emerald-400">--</span>
+            <span class="text-lg font-semibold text-slate-400">Watt</span>
+          </div>
+          <p id="costPerHour" class="text-xs text-slate-400 mt-1">Estimasi biaya aktif: Rp -- / jam</p>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-slate-400">Status Beban</div>
+          <div id="compressorState" class="text-sm font-bold text-slate-200 mt-0.5">--</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-slate-800 text-center">
+        <div class="bg-slate-900/60 rounded-xl p-2">
+          <div class="text-[10px] text-slate-400">Tegangan</div>
+          <div class="text-xs font-bold text-slate-100 mt-0.5"><span id="voltValue">--</span> V</div>
+        </div>
+        <div class="bg-slate-900/60 rounded-xl p-2">
+          <div class="text-[10px] text-slate-400">Arus Listrik</div>
+          <div class="text-xs font-bold text-slate-100 mt-0.5"><span id="ampValue">--</span> A</div>
+        </div>
+        <div class="bg-slate-900/60 rounded-xl p-2">
+          <div class="text-[10px] text-slate-400">Hari Ini</div>
+          <div class="text-xs font-bold text-emerald-300 mt-0.5"><span id="kwhValue">--</span> kWh</div>
+        </div>
+        <div class="bg-slate-900/60 rounded-xl p-2 border border-sky-500/30">
+          <div class="text-[10px] text-sky-400">Menyala Hari Ini</div>
+          <div class="text-xs font-bold text-sky-300 mt-0.5"><span id="workHoursToday">--</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grafik Pemakaian Listrik Harian, Mingguan & Bulanan -->
+    <section class="glass rounded-2xl p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-xs uppercase tracking-wider text-sky-400 font-semibold">Grafik Pemakaian & Penghematan</span>
+          <h3 id="chartSubtitle" class="text-xs text-slate-400 mt-0.5">Konsumsi kWh & Penghematan AI SaveIn</h3>
+        </div>
+      </div>
+
+      <!-- Tab Switcher: Harian | Mingguan | Bulanan -->
+      <div class="grid grid-cols-3 gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+        <button id="tabDaily" onclick="switchChartPeriod('daily')" class="py-1.5 rounded-lg text-xs transition tab-inactive">
+          Harian (24J)
+        </button>
+        <button id="tabWeekly" onclick="switchChartPeriod('weekly')" class="py-1.5 rounded-lg text-xs transition tab-active">
+          Mingguan (7H)
+        </button>
+        <button id="tabMonthly" onclick="switchChartPeriod('monthly')" class="py-1.5 rounded-lg text-xs transition tab-inactive">
+          Bulanan (30H)
+        </button>
+      </div>
+
+      <!-- Summary KPI Strip for Selected Period -->
+      <div class="grid grid-cols-4 gap-1.5 text-center">
+        <div class="bg-slate-900/65 rounded-xl p-2 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400" id="lblPeriodKwh">Total 7 Hari</div>
+          <div class="text-xs font-extrabold text-emerald-400 mt-0.5"><span id="valPeriodKwh">--</span> kWh</div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400">Biaya</div>
+          <div class="text-xs font-extrabold text-slate-100 mt-0.5">Rp <span id="valPeriodCost">--</span></div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2 border border-sky-500/30">
+          <div class="text-[10px] text-sky-400">Hemat SaveIn</div>
+          <div class="text-xs font-extrabold text-sky-300 mt-0.5"><span id="valPeriodSaved">--</span> kWh</div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2 border border-amber-500/30">
+          <div class="text-[10px] text-amber-400">Durasi Nyala</div>
+          <div class="text-xs font-extrabold text-amber-300 mt-0.5"><span id="valPeriodHours">--</span></div>
+        </div>
+      </div>
+
+      <!-- Canvas Chart -->
+      <div class="relative h-56 w-full pt-2">
+        <canvas id="energyChart"></canvas>
+      </div>
+
+      <!-- Breakdown Table -->
+      <div id="periodTableWrap" class="pt-2 border-t border-slate-800/80 max-h-40 overflow-y-auto space-y-1 text-xs"></div>
+    </section>
+
+    <!-- TCL SaveIn Air Conditioner Control Card -->
+    <section class="glass glow-ac rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <span class="text-xs uppercase tracking-wider text-sky-400 font-semibold">Remote Kontrol AC TCL SaveIn</span>
+          <h2 id="acName" class="text-sm font-bold text-slate-200 mt-0.5">AC TCL SAVEIN</h2>
+        </div>
+        <button id="btnPower" onclick="toggleAcPower()" class="px-4 py-2 rounded-xl font-bold text-xs bg-slate-700 text-slate-200 transition">
+          POWER: --
+        </button>
+      </div>
+
+      <!-- Temperature Control Dial -->
+      <div class="flex items-center justify-between bg-slate-900/70 rounded-2xl p-4 my-2 border border-slate-800">
+        <button onclick="adjustTemp(-1)" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-2xl font-bold text-sky-400 flex items-center justify-center border border-slate-700">
+          &minus;
+        </button>
+        <div class="text-center">
+          <div class="text-xs text-slate-400">Target Suhu</div>
+          <div class="flex items-start justify-center">
+            <span id="targetTemp" class="text-5xl font-extrabold text-sky-400">--</span>
+            <span class="text-xl font-bold text-sky-400 mt-1">&deg;C</span>
+          </div>
+          <div class="text-xs text-slate-400 mt-1">
+            Ruangan: <span id="currentTemp" class="font-bold text-slate-200">--</span>&deg;C
+            <span id="outdoorTempWrap" class="hidden"> &bull; Outdoor: <span id="outdoorTemp">--</span>&deg;C</span>
+            <span id="coilTempWrap" class="hidden"> &bull; Evap: <span id="coilTemp">--</span>&deg;C</span>
+          </div>
+        </div>
+        <button onclick="adjustTemp(1)" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-2xl font-bold text-sky-400 flex items-center justify-center border border-slate-700">
+          +
+        </button>
+      </div>
+
+      <!-- Mode Operasi AC (Cool, Dry, Fan, Auto) -->
+      <div class="mt-4">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs text-slate-400 font-medium">Mode Operasi</span>
+          <span id="activeModeLabel" class="text-xs font-bold text-sky-400">Cool</span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button id="modeBtn1" onclick="setWorkMode(1)" class="py-2 rounded-xl bg-slate-800 text-xs font-semibold border border-slate-700 transition">&#10052; Cool</button>
+          <button id="modeBtn2" onclick="setWorkMode(2)" class="py-2 rounded-xl bg-slate-800 text-xs font-semibold border border-slate-700 transition">&#128167; Dry</button>
+          <button id="modeBtn3" onclick="setWorkMode(3)" class="py-2 rounded-xl bg-slate-800 text-xs font-semibold border border-slate-700 transition">&#127744; Fan</button>
+          <button id="modeBtn0" onclick="setWorkMode(0)" class="py-2 rounded-xl bg-slate-800 text-xs font-semibold border border-slate-700 transition">&#9851; Auto</button>
+        </div>
+      </div>
+
+      <!-- Kecepatan Kipas 7-Gear + Auto & Mute (Sesuai Aplikasi TCL Home) -->
+      <div class="mt-4 pt-3 border-t border-slate-800">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs text-slate-400 font-medium">Kecepatan Kipas (7-Gear Fan Speed)</span>
+          <span id="fanSpeedLabel" class="text-xs font-bold text-sky-400">Auto</span>
+        </div>
+        <div class="grid grid-cols-8 gap-1">
+          <button id="fanGear0" onclick="setFanGear(0)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">Auto</button>
+          <button id="fanGear1" onclick="setFanGear(1)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">1</button>
+          <button id="fanGear2" onclick="setFanGear(2)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">2</button>
+          <button id="fanGear3" onclick="setFanGear(3)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">3</button>
+          <button id="fanGear4" onclick="setFanGear(4)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">4</button>
+          <button id="fanGear5" onclick="setFanGear(5)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">5</button>
+          <button id="fanGear6" onclick="setFanGear(6)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">6</button>
+          <button id="fanGear7" onclick="setFanGear(7)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">7</button>
+        </div>
+      </div>
+
+      <!-- Tombol Fitur Lengkap Sesuai Aplikasi TCL Home (1 Tombol AI Eco Terpadu) -->
+      <div class="mt-4 pt-3 border-t border-slate-800">
+        <div class="text-xs text-slate-400 font-medium mb-2">Fitur & Mode Pintar TCL Home</div>
+        <div class="grid grid-cols-3 gap-2">
+          <button id="btnAiEco" onclick="toggleAiEco()" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
+            <div class="text-xs font-bold text-slate-200">&#127807; AI Eco</div>
+            <div id="stateAiEco" class="text-[10px] text-slate-400 mt-0.5">Nonaktif</div>
+          </button>
+          <button id="btnTurbo" onclick="toggleTurbo()" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
+            <div class="text-xs font-bold text-slate-200">&#9889; Turbo</div>
+            <div id="stateTurbo" class="text-[10px] text-slate-400 mt-0.5">Nonaktif</div>
+          </button>
+          <button id="btnVSwing" onclick="toggleVerticalSwing()" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
+            <div class="text-xs font-bold text-slate-200">&#8597; Swing Atas-Bawah</div>
+            <div id="stateVSwing" class="text-[10px] text-slate-400 mt-0.5">Mati</div>
+          </button>
+          <button id="btnSleep" onclick="toggleSleep()" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
+            <div class="text-xs font-bold text-slate-200">&#127769; Mode Tidur</div>
+            <div id="stateSleep" class="text-[10px] text-slate-400 mt-0.5">Nonaktif</div>
+          </button>
+          <button id="btnHealthy" onclick="toggleFeature('healthy')" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
+            <div class="text-xs font-bold text-slate-200">&#10024; Health / Ion</div>
+            <div id="stateHealthy" class="text-[10px] text-slate-400 mt-0.5">Nonaktif</div>
+          </button>
+          <button id="btnScreen" onclick="toggleFeature('screen')" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
+            <div class="text-xs font-bold text-slate-200">&#128161; Layar LED</div>
+            <div id="stateScreen" class="text-[10px] text-slate-400 mt-0.5">Menyala</div>
+          </button>
+          <button id="btnBeep" onclick="toggleFeature('beepSwitch')" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
+            <div class="text-xs font-bold text-slate-200">&#128266; Suara Beep</div>
+            <div id="stateBeep" class="text-[10px] text-slate-400 mt-0.5">Aktif</div>
+          </button>
+          <button id="btnSelfClean" onclick="toggleFeature('selfClean')" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
+            <div class="text-xs font-bold text-slate-200">&#129532; Self Clean</div>
+            <div id="stateSelfClean" class="text-[10px] text-slate-400 mt-0.5">Standby</div>
+          </button>
+          <button id="btnAntiMildew" onclick="toggleFeature('antiMoldew')" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
+            <div class="text-xs font-bold text-slate-200">&#128737; Anti Jamur</div>
+            <div id="stateAntiMildew" class="text-[10px] text-slate-400 mt-0.5">Nonaktif</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Generator Mode (SaveIn Gear Limit L1 - L6) -->
+      <div class="mt-4 pt-3 border-t border-slate-800">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-slate-400 font-medium">Generator Mode (Pembatas Daya Kompresor)</span>
+          <span id="genModeLabel" class="text-xs font-bold text-sky-400">Off (Normal)</span>
+        </div>
+        <div class="grid grid-cols-7 gap-1">
+          <button id="genBtn0" onclick="setCommand({generatorMode: 0})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">Off</button>
+          <button id="genBtn1" onclick="setCommand({generatorMode: 1})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L1</button>
+          <button id="genBtn2" onclick="setCommand({generatorMode: 2})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L2</button>
+          <button id="genBtn3" onclick="setCommand({generatorMode: 3})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L3</button>
+          <button id="genBtn4" onclick="setCommand({generatorMode: 4})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L4</button>
+          <button id="genBtn5" onclick="setCommand({generatorMode: 5})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L5</button>
+          <button id="genBtn6" onclick="setCommand({generatorMode: 6})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L6</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Log Card -->
+    <section class="glass rounded-2xl p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Log Real-Time Suhu vs Watt</h3>
+        <span class="text-[11px] text-slate-500">Auto-refresh 5 dtk</span>
+      </div>
+      <div id="historyList" class="space-y-1.5 text-xs text-slate-300 max-h-36 overflow-y-auto">
+        <div class="text-slate-500">Menunggu pembacaan data...</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 max-h-[90vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold">Konfigurasi Akun TCL Home & Tuya</h2>
+        <button onclick="toggleModal('settingsModal')" class="text-slate-400 hover:text-white text-sm">Tutup</button>
+      </div>
+
+      <!-- TCL Home Credentials -->
+      <div class="space-y-2 bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/70">
+        <div class="text-xs font-bold text-sky-400 uppercase">1. Akun Aplikasi TCL Home (AC SaveIn)</div>
+        <input id="tclUser" type="text" placeholder="Email / Nomor HP TCL Home" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+        <input id="tclPass" type="password" placeholder="Password TCL Home" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+        <input id="tclDeviceId" type="text" placeholder="Device ID (Kosongkan untuk deteksi otomatis)" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+      </div>
+
+      <!-- Tuya Smart Plug Credentials -->
+      <div class="space-y-2 bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/70">
+        <div class="text-xs font-bold text-emerald-400 uppercase">2. Smart Plug Tuya (Pembaca Watt Aktual)</div>
+        <select id="tuyaMode" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs">
+          <option value="cloud">Hybrid (Local Wi-Fi v3.4 + Tuya Cloud)</option>
+          <option value="local">Tuya Local Wi-Fi Only</option>
+        </select>
+        <div class="grid grid-cols-2 gap-2">
+          <input id="tuyaRegion" type="text" value="sg" placeholder="Region (sg / us / eu / cn)" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+          <input id="tuyaDeviceId" type="text" placeholder="Tuya Device ID" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+        </div>
+        <input id="tuyaKey" type="text" placeholder="Tuya Cloud Access ID (Client ID)" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+        <input id="tuyaSecret" type="password" placeholder="Tuya Cloud Access Secret" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <input id="tuyaLocalIp" type="text" placeholder="IP Lokal (192.168.100.59)" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+          <input id="tuyaLocalKey" type="text" placeholder="Local Key" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-xs text-slate-400">Tarif Listrik per kWh (Rp)</label>
+        <input id="tarifPln" type="number" value="1444.70" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+      </div>
+
+      <button onclick="saveConfig()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-xs">
+        Simpan & Hubungkan Perangkat
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let currentState = { ac: null, plug: null, tarif: 1444.7 };
+    let analyticsData = null;
+    let activePeriod = 'weekly'; // 'daily' | 'weekly' | 'monthly'
+    let energyChartInstance = null;
+
+    function toggleModal(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('hidden');
+    }
+
+    async function loadConfigIntoForm() {
+      try {
+        const res = await fetch('/api/config');
+        const cfg = await res.json();
+        document.getElementById('tclUser').value = cfg.tcl_username || '';
+        document.getElementById('tclDeviceId').value = cfg.tcl_device_id || '';
+        document.getElementById('tuyaMode').value = cfg.tuya_mode || 'cloud';
+        document.getElementById('tuyaRegion').value = cfg.tuya_region || 'sg';
+        document.getElementById('tuyaDeviceId').value = cfg.tuya_device_id || '';
+        document.getElementById('tuyaKey').value = cfg.tuya_api_key || '';
+        document.getElementById('tuyaLocalIp').value = cfg.tuya_local_ip || '';
+        document.getElementById('tuyaLocalKey').value = cfg.tuya_local_key || '';
+        document.getElementById('tarifPln').value = cfg.pln_rate || 1444.70;
+      } catch (e) {}
+    }
+
+    async function saveConfig() {
+      const payload = {
+        tcl_username: document.getElementById('tclUser').value.trim(),
+        tcl_password: document.getElementById('tclPass').value,
+        tcl_device_id: document.getElementById('tclDeviceId').value.trim(),
+        tuya_mode: document.getElementById('tuyaMode').value,
+        tuya_region: document.getElementById('tuyaRegion').value.trim() || 'sg',
+        tuya_device_id: document.getElementById('tuyaDeviceId').value.trim(),
+        tuya_api_key: document.getElementById('tuyaKey').value.trim(),
+        tuya_api_secret: document.getElementById('tuyaSecret').value.trim(),
+        tuya_local_ip: document.getElementById('tuyaLocalIp').value.trim(),
+        tuya_local_key: document.getElementById('tuyaLocalKey').value.trim(),
+        pln_rate: parseFloat(document.getElementById('tarifPln').value) || 1444.7
+      };
+      await fetch('/api/config', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      toggleModal('settingsModal');
+      refreshAll();
+    }
+
+    async function refreshAnalytics() {
+      try {
+        const resAnalytics = await fetch('/api/analytics');
+        analyticsData = await resAnalytics.json();
+        renderEnergyChart();
+      } catch (e) {}
+    }
+
+    async function refreshAll() {
+      try {
+        const resStatus = await fetch('/api/status');
+        const data = await resStatus.json();
+        renderDashboard(data);
+        if (!analyticsData) {
+          await refreshAnalytics();
+        }
+      } catch (err) {
+        document.getElementById('subtitleStatus').innerText = 'Gagal menghubungi server';
+      }
+    }
+
+    function scheduleMidnightChartRefresh() {
+      const now = new Date();
+      const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+      const msUntilMidnight = nextMidnight.getTime() - now.getTime();
+      setTimeout(async () => {
+        await refreshAnalytics();
+        scheduleMidnightChartRefresh();
+      }, msUntilMidnight);
+    }
+
+    function switchChartPeriod(period) {
+      activePeriod = period;
+      ['Daily', 'Weekly', 'Monthly'].forEach(p => {
+        const btn = document.getElementById('tab' + p);
+        if (p.toLowerCase() === period) {
+          btn.className = 'py-1.5 rounded-lg text-xs transition tab-active';
+        } else {
+          btn.className = 'py-1.5 rounded-lg text-xs transition tab-inactive';
+        }
+      });
+      renderEnergyChart();
+    }
+
+    function renderEnergyChart() {
+      if (!analyticsData) return;
+      const s = analyticsData.summary || {};
+      const rate = analyticsData.pln_rate || 1444.7;
+      const tableEl = document.getElementById('periodTableWrap');
+
+      let labels = [];
+      let mainValues = [];
+      let secondValues = [];
+      let mainLabel = 'Pemakaian (kWh)';
+      let secondLabel = 'Hemat AI SaveIn (kWh)';
+
+      if (activePeriod === 'daily') {
+        document.getElementById('lblPeriodKwh').innerText = 'Hari Ini';
+        document.getElementById('valPeriodKwh').innerText = s.today_kwh ?? 0;
+        document.getElementById('valPeriodCost').innerText = (s.today_cost_rp || 0).toLocaleString('id-ID');
+        document.getElementById('valPeriodSaved').innerText = s.today_ai_saved_kwh ?? 0;
+        document.getElementById('valPeriodHours').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
+        document.getElementById('workHoursToday').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
+        document.getElementById('chartSubtitle').innerText = 'Rata-rata Daya Aktual (Watt) per Jam Hari Ini (Jadwal Refresh: 00:00)';
+
+        const hourly = analyticsData.daily_hourly || [];
+        labels = hourly.map(h => h.label);
+        mainValues = hourly.map(h => h.avg_watts);
+        secondValues = hourly.map(h => h.peak_watts);
+        mainLabel = 'Rata-rata (Watt)';
+        secondLabel = 'Puncak (Watt)';
+
+        const activeHours = hourly.filter(h => h.avg_watts > 0);
+        tableEl.innerHTML = activeHours.length > 0
+          ? activeHours.map(h => `
+              <div class="flex justify-between py-1 border-b border-slate-800/60">
+                <span class="text-slate-400">Jam ${h.label}</span>
+                <span>Suhu: <b>${h.avg_temp ?? '--'}&deg;C</b></span>
+                <span class="text-emerald-400 font-bold">Avg ${h.avg_watts} W (Max ${h.peak_watts} W)</span>
+              </div>`).join('')
+          : '<div class="text-slate-500">Data per jam hari ini sedang dikumpulkan...</div>';
+
+      } else if (activePeriod === 'weekly') {
+        document.getElementById('lblPeriodKwh').innerText = 'Total 7 Hari';
+        document.getElementById('valPeriodKwh').innerText = s.week_kwh ?? 0;
+        document.getElementById('valPeriodCost').innerText = (s.week_cost_rp || 0).toLocaleString('id-ID');
+        document.getElementById('valPeriodSaved').innerText = s.week_ai_saved_kwh ?? 0;
+        document.getElementById('valPeriodHours').innerText = `${s.week_work_hours ?? 0} jam`;
+        document.getElementById('workHoursToday').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
+        document.getElementById('chartSubtitle').innerText = 'Pemakaian Harian (kWh) & Durasi AC Menyala (Jadwal Refresh: 00:00)';
+
+        const days = analyticsData.weekly || [];
+        labels = days.map(d => d.label);
+        mainValues = days.map(d => d.kwh);
+        secondValues = days.map(d => d.ai_saved_kwh);
+
+        tableEl.innerHTML = [...days].reverse().map(d => `
+          <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+            <span class="text-slate-300 font-medium">${d.label}</span>
+            <span class="text-amber-300 font-semibold">&#9201; ${d.work_duration_str}</span>
+            <span class="text-sky-400">Hemat: ${d.ai_saved_kwh} kWh</span>
+            <span class="text-emerald-400 font-bold">${d.kwh} kWh (Rp ${Math.round(d.kwh * rate).toLocaleString('id-ID')})</span>
+          </div>`).join('');
+
+      } else {
+        document.getElementById('lblPeriodKwh').innerText = 'Total 30 Hari';
+        document.getElementById('valPeriodKwh').innerText = s.month_kwh ?? 0;
+        document.getElementById('valPeriodCost').innerText = (s.month_cost_rp || 0).toLocaleString('id-ID');
+        document.getElementById('valPeriodSaved').innerText = s.month_ai_saved_kwh ?? 0;
+        document.getElementById('valPeriodHours').innerText = `${s.month_work_hours ?? 0} jam`;
+        document.getElementById('workHoursToday').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
+        document.getElementById('chartSubtitle').innerText = 'Tren Pemakaian & Durasi Nyala Bulanan (Jadwal Refresh: 00:00)';
+
+        const days = analyticsData.monthly || [];
+        labels = days.map(d => d.label);
+        mainValues = days.map(d => d.kwh);
+        secondValues = days.map(d => d.ai_saved_kwh);
+
+        const nonZeroDays = [...days].reverse().filter(d => d.kwh > 0 || d.ai_saved_kwh > 0 || d.work_hours > 0);
+        tableEl.innerHTML = nonZeroDays.map(d => `
+          <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+            <span class="text-slate-300 font-medium">${d.label} (${d.date})</span>
+            <span class="text-amber-300 font-semibold">&#9201; ${d.work_duration_str}</span>
+            <span class="text-sky-400">Hemat: ${d.ai_saved_kwh} kWh</span>
+            <span class="text-emerald-400 font-bold">${d.kwh} kWh (Rp ${Math.round(d.kwh * rate).toLocaleString('id-ID')})</span>
+          </div>`).join('');
+      }
+
+      const ctx = document.getElementById('energyChart').getContext('2d');
+      if (energyChartInstance) {
+        energyChartInstance.data.labels = labels;
+        energyChartInstance.data.datasets[0].label = mainLabel;
+        energyChartInstance.data.datasets[0].data = mainValues;
+        energyChartInstance.data.datasets[1].label = secondLabel;
+        energyChartInstance.data.datasets[1].data = secondValues;
+        energyChartInstance.update('none');
+        return;
+      }
+      energyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: mainLabel,
+              data: mainValues,
+              backgroundColor: 'rgba(16, 185, 129, 0.75)',
+              borderColor: '#10b981',
+              borderWidth: 1,
+              borderRadius: 6
+            },
+            {
+              label: secondLabel,
+              data: secondValues,
+              backgroundColor: 'rgba(56, 189, 248, 0.65)',
+              borderColor: '#38bdf8',
+              borderWidth: 1,
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: {
+            legend: {
+              labels: { color: '#cbd5e1', font: { size: 10 } }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              grid: { color: 'rgba(148, 163, 184, 0.08)' }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              grid: { color: 'rgba(148, 163, 184, 0.12)' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderDashboard(data) {
+      const banner = document.getElementById('alertBanner');
+      if (data.warnings && data.warnings.length > 0) {
+        banner.innerText = data.warnings.join(' | ');
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+
+      document.getElementById('subtitleStatus').innerText = 'Live • Update: ' + new Date().toLocaleTimeString('id-ID');
+
+      // Render Tuya Watt Plug
+      const plug = data.plug || {};
+      const watts = plug.power_watts ?? '--';
+      document.getElementById('wattValue').innerText = watts;
+      document.getElementById('voltValue').innerText = plug.voltage_volts ?? '--';
+      document.getElementById('ampValue').innerText = plug.current_amps ?? '--';
+      const todayKwh = data.ac_energy?.today_kwh || plug.accumulated_kwh || '--';
+      document.getElementById('kwhValue').innerText = todayKwh;
+      document.getElementById('plugSourceBadge').innerText = plug.source || 'Real-Time';
+
+      const rate = data.pln_rate || 1444.7;
+      if (typeof watts === 'number') {
+        const rpHour = Math.round((watts / 1000.0) * rate);
+        document.getElementById('costPerHour').innerText = `Biaya jalan saat ini: Rp ${rpHour.toLocaleString('id-ID')} / jam`;
+        let compText = 'Standby / Mati';
+        if (watts > 550) compText = 'High Load (Turbo/Awal)';
+        else if (watts > 220) compText = 'Inverter Stabil';
+        else if (watts > 25) compText = 'Low Watt / Eco SaveIn';
+        else if (watts > 5) compText = 'Fan Only';
+        document.getElementById('compressorState').innerText = compText;
+      }
+
+      // Render TCL AC
+      const ac = data.ac || {};
+      currentState.ac = ac;
+      if (ac.name) document.getElementById('acName').innerText = `${ac.name} ${ac.compressor_frequency ? '• ' + ac.compressor_frequency + ' Hz' : ''}`;
+      document.getElementById('targetTemp').innerText = ac.target_temperature ?? '--';
+      document.getElementById('currentTemp').innerText = ac.current_temperature ?? '--';
+      if (ac.external_temperature && ac.external_temperature > 0) {
+        document.getElementById('outdoorTempWrap').classList.remove('hidden');
+        document.getElementById('outdoorTemp').innerText = ac.external_temperature;
+      }
+      if (ac.coil_temperature !== undefined && ac.coil_temperature !== null) {
+        document.getElementById('coilTempWrap').classList.remove('hidden');
+        document.getElementById('coilTemp').innerText = ac.coil_temperature;
+      }
+
+      const btnPower = document.getElementById('btnPower');
+      if (ac.power) {
+        btnPower.innerText = 'POWER: ON';
+        btnPower.className = 'px-4 py-2 rounded-xl font-bold text-xs bg-emerald-600 text-white shadow-lg shadow-emerald-600/30';
+      } else {
+        btnPower.innerText = 'POWER: OFF';
+        btnPower.className = 'px-4 py-2 rounded-xl font-bold text-xs bg-slate-800 text-slate-400 border border-slate-700';
+      }
+
+      // Highlight Active Work Mode (1: Cool, 2: Dry, 3: Fan, 0: Auto)
+      document.getElementById('activeModeLabel').innerText = ac.work_mode || 'Cool';
+      [0, 1, 2, 3].forEach(m => {
+        const mBtn = document.getElementById('modeBtn' + m);
+        if (!mBtn) return;
+        if (ac.work_mode_code === m) {
+          mBtn.className = 'py-2 rounded-xl bg-sky-600 text-white text-xs font-bold border border-sky-400 shadow';
+        } else {
+          mBtn.className = 'py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-700 transition';
+        }
+      });
+
+      // Highlight Active 7-Gear Fan Speed
+      const activeGear = ac.wind_speed_auto ? 0 : (ac.wind_speed_7_gear || 0);
+      const gearNames = {0: 'Auto', 1: 'Gear 1 (Mute)', 2: 'Gear 2', 3: 'Gear 3', 4: 'Gear 4', 5: 'Gear 5', 6: 'Gear 6', 7: 'Gear 7 (Max)'};
+      document.getElementById('fanSpeedLabel').innerText = gearNames[activeGear] || `Gear ${activeGear}`;
+      for (let g = 0; g <= 7; g++) {
+        const gBtn = document.getElementById('fanGear' + g);
+        if (!gBtn) return;
+        if (g === activeGear) {
+          gBtn.className = 'py-1.5 rounded-lg bg-sky-600 text-white text-[11px] font-bold border border-sky-400';
+        } else {
+          gBtn.className = 'py-1.5 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-bold border border-slate-700';
+        }
+      }
+
+      // 1 Unified AI Eco Button + All TCL Home Feature Buttons
+      setToggleCard('btnAiEco', 'stateAiEco', ac.ai_eco_savein);
+      setToggleCard('btnTurbo', 'stateTurbo', ac.turbo_mode);
+      setToggleCard('btnVSwing', 'stateVSwing', ac.vertical_swing, 'Bergerak', 'Tetap');
+      setToggleCard('btnSleep', 'stateSleep', ac.sleep_mode > 0);
+      setToggleCard('btnHealthy', 'stateHealthy', ac.healthy);
+      setToggleCard('btnScreen', 'stateScreen', ac.screen_display, 'Menyala', 'Mati');
+      setToggleCard('btnBeep', 'stateBeep', ac.beep_switch, 'Aktif', 'Senyap');
+      setToggleCard('btnSelfClean', 'stateSelfClean', ac.self_clean, 'Berjalan', 'Standby');
+      setToggleCard('btnAntiMildew', 'stateAntiMildew', ac.anti_moldew);
+
+      const genMap = {
+        0: 'Off (100%)',
+        1: 'Level L1',
+        2: 'Level L2',
+        3: 'Level L3',
+        4: 'Level L4',
+        5: 'Level L5',
+        6: 'Level L6'
+      };
+      document.getElementById('genModeLabel').innerText = genMap[ac.generator_mode] || `Level L${ac.generator_mode}`;
+      [0, 1, 2, 3, 4, 5, 6].forEach(g => {
+        const gb = document.getElementById('genBtn' + g);
+        if (!gb) return;
+        if ((ac.generator_mode || 0) === g) {
+          gb.className = 'py-1.5 rounded-lg bg-sky-600 text-white text-[11px] font-bold border border-sky-400';
+        } else {
+          gb.className = 'py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700';
+        }
+      });
+
+      // Render History Log
+      if (data.history && data.history.length > 0) {
+        const listEl = document.getElementById('historyList');
+        listEl.innerHTML = data.history.map(h =>
+          `<div class="flex justify-between py-1 border-b border-slate-800/70">
+            <span class="text-slate-400">${h.time}</span>
+            <span>Suhu: <b>${h.room_temp ?? '--'}&deg;C</b> (Set ${h.target_temp ?? '--'}&deg;C)</span>
+            <span class="text-emerald-400 font-bold">${h.watts ?? '--'} W</span>
+          </div>`
+        ).join('');
+      }
+    }
+
+    function setToggleCard(btnId, labelId, active, onText = 'Aktif', offText = 'Nonaktif') {
+      const btn = document.getElementById(btnId);
+      const lbl = document.getElementById(labelId);
+      if (!btn || !lbl) return;
+      if (active) {
+        btn.className = 'p-2.5 rounded-xl bg-sky-500/20 border border-sky-400/50 text-left transition';
+        lbl.innerText = onText;
+        lbl.className = 'text-[10px] text-sky-300 font-semibold mt-0.5';
+      } else {
+        btn.className = 'p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition';
+        lbl.innerText = offText;
+        lbl.className = 'text-[10px] text-slate-400 mt-0.5';
+      }
+    }
+
+    async function setCommand(changes) {
+      await fetch('/api/ac/control', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ desired: changes })
+      });
+      setTimeout(refreshAll, 900);
+    }
+
+    function toggleAcPower() {
+      const isOn = currentState.ac?.power;
+      setCommand({ powerSwitch: isOn ? 0 : 1 });
+    }
+
+    function adjustTemp(delta) {
+      const cur = parseInt(currentState.ac?.target_temperature || 24, 10);
+      const next = Math.min(31, Math.max(16, cur + delta));
+      document.getElementById('targetTemp').innerText = next;
+      setCommand({ targetTemperature: next });
+    }
+
+    function setWorkMode(modeNum) {
+      setCommand({ workMode: modeNum, turbo: 0 });
+    }
+
+    function setFanGear(gear) {
+      if (gear === 0) {
+        setCommand({ windSpeedAutoSwitch: 1, windSpeed7Gear: 0 });
+      } else {
+        setCommand({ windSpeedAutoSwitch: 0, windSpeed7Gear: gear, turbo: 0 });
+      }
+    }
+
+    function toggleAiEco() {
+      const isEco = currentState.ac?.ai_eco_savein;
+      const nextVal = isEco ? 0 : 1;
+      setCommand({ AIECOSwitch: nextVal, ECO: nextVal, turbo: 0 });
+    }
+
+    function toggleTurbo() {
+      const isTurbo = currentState.ac?.turbo_mode;
+      const nextVal = isTurbo ? 0 : 1;
+      if (nextVal === 1) {
+        setCommand({ turbo: 1, AIECOSwitch: 0, ECO: 0, windSpeedAutoSwitch: 0, windSpeed7Gear: 7 });
+      } else {
+        setCommand({ turbo: 0 });
+      }
+    }
+
+    function toggleVerticalSwing() {
+      const isSw = currentState.ac?.vertical_swing;
+      const nextVal = isSw ? 0 : 1;
+      setCommand({ verticalWind: nextVal, verticalDirection: nextVal ? 1 : 8 });
+    }
+
+    function toggleHorizontalSwing() {
+      const isSw = currentState.ac?.horizontal_swing;
+      const nextVal = isSw ? 0 : 1;
+      setCommand({ horizontalWind: nextVal, horizontalDirection: nextVal ? 1 : 8 });
+    }
+
+    function toggleSleep() {
+      const isSl = (currentState.ac?.sleep_mode || 0) > 0;
+      setCommand({ sleep: isSl ? 0 : 1 });
+    }
+
+    function toggleFeature(field) {
+      const ac = currentState.ac || {};
+      const map = {
+        'coolFeelWind': ac.soft_wind,
+        'healthy': ac.healthy,
+        'screen': ac.screen_display,
+        'beepSwitch': ac.beep_switch,
+        'selfClean': ac.self_clean,
+        'antiMoldew': ac.anti_moldew
+      };
+      const nextVal = map[field] ? 0 : 1;
+      setCommand({ [field]: nextVal });
+    }
+
+    loadConfigIntoForm();
+    refreshAll();
+    scheduleMidnightChartRefresh();
+    setInterval(async () => {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        renderDashboard(data);
+      } catch (e) {}
+    }, 2000);
+  </script>
+</body>
+</html>
