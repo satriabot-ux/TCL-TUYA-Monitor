@@ -19,6 +19,27 @@
   </style>
 </head>
 <body class="min-h-screen pb-16">
+  <!-- Fullscreen Password Lock Overlay -->
+  <div id="loginOverlay" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass rounded-2xl max-w-sm w-full p-6 text-center space-y-4 border border-slate-700/80 shadow-2xl">
+      <div class="w-12 h-12 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center mx-auto text-2xl">
+        &#128274;
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-slate-100">TCL SaveIn &bull; Smart Monitor</h2>
+        <p class="text-xs text-slate-400 mt-1">Masukkan password akses untuk membuka kontrol AC & Watt Meter</p>
+      </div>
+      <form onsubmit="submitLogin(event)" class="space-y-3">
+        <input id="loginPasswordInput" type="password" placeholder="Masukkan Password..." autocomplete="current-password"
+          class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-center focus:outline-none focus:border-sky-400" />
+        <div id="loginErrorMsg" class="hidden text-xs text-rose-400 font-medium">Password salah, silakan coba lagi!</div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 font-bold text-xs text-white transition">
+          Buka Dashboard
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Header Bar -->
   <header class="sticky top-0 z-30 glass px-4 py-3 flex items-center justify-between">
     <div class="flex items-center gap-2.5">
@@ -28,12 +49,15 @@
         <p class="text-xs text-slate-400" id="subtitleStatus">Menghubungkan ke perangkat...</p>
       </div>
     </div>
-    <div class="flex items-center gap-2">
-      <button onclick="refreshAll()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700">
+    <div class="flex items-center gap-1.5">
+      <button onclick="refreshAll()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700">
         Refresh
       </button>
-      <button onclick="toggleModal('settingsModal')" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-semibold">
+      <button onclick="toggleModal('settingsModal')" class="px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-semibold">
         Konfigurasi
+      </button>
+      <button onclick="logoutApp()" title="Kunci Aplikasi" class="px-2.5 py-1.5 rounded-lg bg-rose-600/80 hover:bg-rose-500 text-xs font-semibold">
+        &#128274;
       </button>
     </div>
   </header>
@@ -324,6 +348,52 @@
     let analyticsData = null;
     let activePeriod = 'weekly'; // 'daily' | 'weekly' | 'monthly'
     let energyChartInstance = null;
+    let appToken = localStorage.getItem('tcl_tuya_app_token') || '';
+
+    function authHeaders(extra = {}) {
+      return { ...extra, 'x-app-token': appToken };
+    }
+
+    function showLoginOverlay() {
+      document.getElementById('loginOverlay').classList.remove('hidden');
+    }
+
+    function hideLoginOverlay() {
+      document.getElementById('loginOverlay').classList.add('hidden');
+    }
+
+    async function submitLogin(e) {
+      e.preventDefault();
+      const pw = document.getElementById('loginPasswordInput').value;
+      const errEl = document.getElementById('loginErrorMsg');
+      errEl.classList.add('hidden');
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ password: pw })
+        });
+        if (!res.ok) {
+          errEl.classList.remove('hidden');
+          return;
+        }
+        const data = await res.json();
+        appToken = data.token;
+        localStorage.setItem('tcl_tuya_app_token', appToken);
+        document.getElementById('loginPasswordInput').value = '';
+        hideLoginOverlay();
+        loadConfigIntoForm();
+        refreshAll();
+      } catch (err) {
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    function logoutApp() {
+      appToken = '';
+      localStorage.removeItem('tcl_tuya_app_token');
+      showLoginOverlay();
+    }
 
     function toggleModal(id) {
       const el = document.getElementById(id);
@@ -331,8 +401,10 @@
     }
 
     async function loadConfigIntoForm() {
+      if (!appToken) return;
       try {
-        const res = await fetch('/api/config');
+        const res = await fetch('/api/config', { headers: authHeaders() });
+        if (res.status === 401) { showLoginOverlay(); return; }
         const cfg = await res.json();
         document.getElementById('tclUser').value = cfg.tcl_username || '';
         document.getElementById('tclDeviceId').value = cfg.tcl_device_id || '';
@@ -362,7 +434,7 @@
       };
       await fetch('/api/config', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: authHeaders({'Content-Type': 'application/json'}),
         body: JSON.stringify(payload)
       });
       toggleModal('settingsModal');
@@ -370,16 +442,27 @@
     }
 
     async function refreshAnalytics() {
+      if (!appToken) return;
       try {
-        const resAnalytics = await fetch('/api/analytics');
+        const resAnalytics = await fetch('/api/analytics', { headers: authHeaders() });
+        if (resAnalytics.status === 401) { showLoginOverlay(); return; }
         analyticsData = await resAnalytics.json();
         renderEnergyChart();
       } catch (e) {}
     }
 
     async function refreshAll() {
+      if (!appToken) {
+        showLoginOverlay();
+        return;
+      }
       try {
-        const resStatus = await fetch('/api/status');
+        const resStatus = await fetch('/api/status', { headers: authHeaders() });
+        if (resStatus.status === 401) {
+          showLoginOverlay();
+          return;
+        }
+        hideLoginOverlay();
         const data = await resStatus.json();
         renderDashboard(data);
         if (!analyticsData) {
@@ -697,11 +780,13 @@
     }
 
     async function setCommand(changes) {
-      await fetch('/api/ac/control', {
+      if (!appToken) { showLoginOverlay(); return; }
+      const res = await fetch('/api/ac/control', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: authHeaders({'Content-Type': 'application/json'}),
         body: JSON.stringify({ desired: changes })
       });
+      if (res.status === 401) { showLoginOverlay(); return; }
       setTimeout(refreshAll, 900);
     }
 
@@ -780,8 +865,10 @@
     refreshAll();
     scheduleMidnightChartRefresh();
     setInterval(async () => {
+      if (!appToken) return;
       try {
-        const res = await fetch('/api/status');
+        const res = await fetch('/api/status', { headers: authHeaders() });
+        if (res.status === 401) { showLoginOverlay(); return; }
         const data = await res.json();
         renderDashboard(data);
       } catch (e) {}

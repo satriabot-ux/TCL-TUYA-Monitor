@@ -6,9 +6,10 @@ from collections import deque
 from pathlib import Path
 from typing import Any, Dict, List
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+import hashlib
 
 from energy_db import EnergyDatabase
 from tcl_client import TCLHomeClient
@@ -45,6 +46,7 @@ def load_config() -> Dict[str, Any]:
         "tuya_local_key": os.environ.get("TUYA_LOCAL_KEY", ""),
         "tuya_local_version": os.environ.get("TUYA_LOCAL_VERSION", "3.4"),
         "pln_rate": float(os.environ.get("PLN_RATE", "1444.70")),
+        "app_password": os.environ.get("APP_PASSWORD", "azzam2021"),
     }
     if CONFIG_PATH.exists():
         try:
@@ -55,6 +57,16 @@ def load_config() -> Dict[str, Any]:
         except Exception:
             pass
     return cfg
+
+
+def get_expected_token() -> str:
+    pw = str(load_config().get("app_password") or "azzam2021").strip()
+    return hashlib.sha256(f"tcl_tuya_auth::{pw}".encode("utf-8")).hexdigest()
+
+
+def verify_auth(x_app_token: str | None) -> None:
+    if not x_app_token or x_app_token != get_expected_token():
+        raise HTTPException(status_code=401, detail="Unauthorized: Password akses salah atau belum login")
 
 
 def save_config_file(cfg: Dict[str, Any]) -> None:
@@ -108,8 +120,20 @@ class ConfigUpdateModel(BaseModel):
     pln_rate: float = 1444.70
 
 
+class LoginModel(BaseModel):
+    password: str
+
+
 class AcControlModel(BaseModel):
     desired: Dict[str, Any]
+
+
+@app.post("/api/auth/login")
+def login_app(body: LoginModel):
+    expected_pw = str(load_config().get("app_password") or "azzam2021").strip()
+    if body.password.strip() == expected_pw:
+        return {"status": "ok", "token": get_expected_token()}
+    raise HTTPException(status_code=401, detail="Password salah!")
 
 
 @app.get("/")
@@ -123,29 +147,34 @@ def serve_manifest():
 
 
 @app.get("/api/config")
-def get_current_config():
+def get_current_config(x_app_token: str | None = Header(default=None)):
+    verify_auth(x_app_token)
     cfg = load_config()
     safe_cfg = {**cfg}
     safe_cfg["tcl_password"] = "***" if cfg.get("tcl_password") else ""
     safe_cfg["tuya_api_secret"] = "***" if cfg.get("tuya_api_secret") else ""
+    safe_cfg["app_password"] = "***"
     return safe_cfg
 
 
 @app.post("/api/config")
-def update_config(body: ConfigUpdateModel):
+def update_config(body: ConfigUpdateModel, x_app_token: str | None = Header(default=None)):
+    verify_auth(x_app_token)
     old = load_config()
     new_cfg = body.model_dump()
     if not new_cfg["tcl_password"] or new_cfg["tcl_password"] == "***":
         new_cfg["tcl_password"] = old.get("tcl_password", "")
     if not new_cfg["tuya_api_secret"] or new_cfg["tuya_api_secret"] == "***":
         new_cfg["tuya_api_secret"] = old.get("tuya_api_secret", "")
+    new_cfg["app_password"] = old.get("app_password", "azzam2021")
     save_config_file(new_cfg)
     init_clients()
     return {"status": "ok"}
 
 
 @app.get("/api/status")
-def get_combined_status():
+def get_combined_status(x_app_token: str | None = Header(default=None)):
+    verify_auth(x_app_token)
     global cached_ac_meta, cached_ac_state, last_ac_poll_ts, last_sample_ts, last_tcl_energy_sync_ts, cached_tcl_energy
     cfg = load_config()
     warnings: List[str] = []
@@ -233,8 +262,9 @@ def get_combined_status():
 
 
 @app.get("/api/analytics")
-def get_analytics():
+def get_analytics(x_app_token: str | None = Header(default=None)):
     """Return Daily (24h hourly), Weekly (7d), and Monthly (30d) energy & cost analytics."""
+    verify_auth(x_app_token)
     global last_tcl_energy_sync_ts, cached_tcl_energy
     cfg = load_config()
     rate = float(cfg.get("pln_rate") or 1444.70)
@@ -298,7 +328,8 @@ def get_analytics():
 
 
 @app.post("/api/ac/control")
-def control_ac(body: AcControlModel):
+def control_ac(body: AcControlModel, x_app_token: str | None = Header(default=None)):
+    verify_auth(x_app_token)
     global last_ac_poll_ts
     cfg = load_config()
     if not tcl_instance:
