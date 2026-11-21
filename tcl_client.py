@@ -221,18 +221,23 @@ class TCLHomeClient:
             "current_temperature": merged.get("currentTemperature"),
             "target_temperature": merged.get("targetTemperature"),
             "external_temperature": merged.get("externalUnitTemperature"),
+            "external_fan_speed": merged.get("externalUnitFanSpeed"),
             "coil_temperature": merged.get("internalUnitCoilTemperature"),
             "compressor_frequency": merged.get("compressorFrequency"),
+            "eev_open_degree": merged.get("OutDoorEEVTarOpenDegree"),
             "work_mode_code": work_mode_num,
             "work_mode": work_mode_map.get(work_mode_num, f"Mode {work_mode_num}"),
             "eco_mode": bool(int(merged.get("ECO", 0))),
             "ai_eco_savein": bool(int(merged.get("AIECOSwitch", 0)) or int(merged.get("ECO", 0))),
+            "ai_eco_status": int(merged.get("AIECOStatus", 0)),
+            "self_learn_switch": bool(int(merged.get("selfLearnSwitch", 0))),
             "turbo_mode": bool(int(merged.get("turbo", 0))),
             "sleep_mode": int(merged.get("sleep", 0)),
             "silence_switch": bool(int(merged.get("silenceSwitch", 0))),
             "soft_wind": bool(int(merged.get("softWind", 0)) or int(merged.get("coolFeelWind", 0))),
             "wind_speed": int(merged.get("windSpeed", 0)),
             "wind_speed_7_gear": int(merged.get("windSpeed7Gear", 0)),
+            "wind_speed_percentage": int(merged.get("windSpeedPercentage", 0)),
             "wind_speed_auto": bool(int(merged.get("windSpeedAutoSwitch", 0))),
             "vertical_swing": bool(int(merged.get("verticalWind", merged.get("verticalSwitch", 0)))),
             "vertical_direction": int(merged.get("verticalDirection", 8)),
@@ -240,7 +245,11 @@ class TCLHomeClient:
             "horizontal_direction": int(merged.get("horizontalDirection", 8)),
             "healthy": bool(int(merged.get("healthy", 0))),
             "self_clean": bool(int(merged.get("selfClean", 0))),
+            "self_clean_status": int(merged.get("selfCleanStatus", 0)),
+            "self_clean_percentage": int(merged.get("selfCleanPercentage", 0)),
             "anti_moldew": bool(int(merged.get("antiMoldew", 0))),
+            "filter_block_status": int(merged.get("filterBlockStatus", 0)),
+            "error_code": merged.get("errorCode") or [],
             "screen_display": bool(int(merged.get("screen", 1))),
             "beep_switch": bool(int(merged.get("beepSwitch", 1))),
             "generator_mode": int(merged.get("generatorMode", 0)),
@@ -262,6 +271,8 @@ class TCLHomeClient:
             "month_total_kwh": 0.0,
             "month_ai_saved_kwh": 0.0,
             "today_work_hours": 0.0,
+            "today_ai_work_hours": 0.0,
+            "today_ai_work_str": "0j 0m",
             "yesterday_work_hours": 0.0,
             "month_work_hours": 0.0,
             "daily_details": [],
@@ -311,6 +322,10 @@ class TCLHomeClient:
                         result["today_work_hours"] = round(
                             float(wd.get("workTime") or wd.get("work_time") or 0.0) / 60.0, 1
                         )
+                        ai_mins = float(wd.get("aiWorkTime") or wd.get("ai_work_time") or 0.0)
+                        result["today_ai_work_hours"] = round(ai_mins / 60.0, 1)
+                        ai_m_int = int(round(ai_mins))
+                        result["today_ai_work_str"] = f"{ai_m_int // 60}j {ai_m_int % 60}m"
                     elif wd.get("date") == yest_iso:
                         result["yesterday_work_hours"] = round(
                             float(wd.get("workTime") or wd.get("work_time") or 0.0) / 60.0, 1

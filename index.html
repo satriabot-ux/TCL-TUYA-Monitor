@@ -285,6 +285,56 @@
       </div>
     </section>
 
+    <!-- Diagnostik & Sensor Teknis AC TCL SaveIn -->
+    <section class="glass rounded-2xl p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-xs uppercase tracking-wider text-sky-400 font-semibold">Diagnostik & Sensor Teknis AC</span>
+          <h3 class="text-xs text-slate-400 mt-0.5">Telemetri Langsung Unit Indoor & Outdoor</h3>
+        </div>
+        <span id="diagErrorBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold">Normal</span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400">Kompresor</div>
+          <div class="text-xs font-extrabold text-sky-300 mt-0.5"><span id="diagCompFreq">--</span> Hz</div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400">Kipas Outdoor</div>
+          <div class="text-xs font-extrabold text-slate-100 mt-0.5"><span id="diagOutdoorFan">--</span> RPM</div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400">Kipas Indoor</div>
+          <div class="text-xs font-extrabold text-slate-100 mt-0.5"><span id="diagIndoorFanPct">--</span>%</div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400">Suhu Evap Indoor</div>
+          <div class="text-xs font-extrabold text-cyan-300 mt-0.5"><span id="diagCoilTemp">--</span>&deg;C</div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400">Katup EEV Outdoor</div>
+          <div class="text-xs font-extrabold text-slate-100 mt-0.5"><span id="diagEevDegree">--</span></div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400">Status Filter</div>
+          <div class="text-xs font-extrabold text-emerald-400 mt-0.5" id="diagFilterStatus">Bersih</div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400">AI SaveIn Aktif</div>
+          <div class="text-xs font-extrabold text-sky-300 mt-0.5" id="diagAiWorkTime">--</div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400">AI Self-Learn</div>
+          <div class="text-xs font-extrabold text-slate-100 mt-0.5" id="diagSelfLearn">--</div>
+        </div>
+        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
+          <div class="text-[10px] text-slate-400">Self Clean</div>
+          <div class="text-xs font-extrabold text-slate-100 mt-0.5" id="diagSelfCleanPct">0%</div>
+        </div>
+      </div>
+    </section>
+
     <!-- Live Log Card -->
     <section class="glass rounded-2xl p-4">
       <div class="flex items-center justify-between mb-2">
@@ -831,6 +881,35 @@
           gb.className = 'py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700';
         }
       });
+
+      // Render Diagnostik & Sensor Teknis AC
+      document.getElementById('diagCompFreq').innerText = ac.compressor_frequency ?? '--';
+      document.getElementById('diagOutdoorFan').innerText = ac.external_fan_speed ?? '--';
+      document.getElementById('diagIndoorFanPct').innerText = ac.wind_speed_percentage ?? '--';
+      document.getElementById('diagCoilTemp').innerText = ac.coil_temperature ?? '--';
+      document.getElementById('diagEevDegree').innerText = ac.eev_open_degree ?? '--';
+
+      const filterEl = document.getElementById('diagFilterStatus');
+      if (ac.filter_block_status && ac.filter_block_status > 0) {
+        filterEl.innerText = 'Perlu Cuci!';
+        filterEl.className = 'text-xs font-extrabold text-amber-400 mt-0.5';
+      } else {
+        filterEl.innerText = 'Bersih';
+        filterEl.className = 'text-xs font-extrabold text-emerald-400 mt-0.5';
+      }
+
+      const errBadge = document.getElementById('diagErrorBadge');
+      if (Array.isArray(ac.error_code) && ac.error_code.length > 0) {
+        errBadge.innerText = 'Error: ' + ac.error_code.join(', ');
+        errBadge.className = 'text-[11px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-semibold';
+      } else {
+        errBadge.innerText = 'Normal (No Error)';
+        errBadge.className = 'text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold';
+      }
+
+      document.getElementById('diagAiWorkTime').innerText = data.ac_energy?.today_ai_work_str || '--';
+      document.getElementById('diagSelfLearn').innerText = ac.self_learn_switch ? 'Aktif' : 'Nonaktif';
+      document.getElementById('diagSelfCleanPct').innerText = ac.self_clean ? `${ac.self_clean_percentage || 0}%` : 'Standby';
 
       // Render History Log
       if (data.history && data.history.length > 0) {
