@@ -526,21 +526,33 @@
         document.getElementById('valPeriodSaved').innerText = s.today_ai_saved_kwh ?? 0;
         document.getElementById('valPeriodHours').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
         document.getElementById('workHoursToday').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
-        document.getElementById('chartSubtitle').innerText = 'Line Chart Pemakaian kWh per Jam (Live • Reset 00:00)';
+        document.getElementById('chartSubtitle').innerText = 'Total Akumulasi kWh dari Jam 00:00 s/d Jam Sekarang (Reset 00:00)';
+
+        const wibNow = new Date(Date.now() + 7 * 3600 * 1000);
+        const curHourIdx = wibNow.getUTCHours();
+
+        // Build cumulative increasing kWh curve from 00:00 up to current hour (future hours = null)
+        let runningKwh = 0;
+        const missingBase = Math.max(0, (s.today_kwh || 0) - sumHourlyKwh);
+        const perHourBase = curHourIdx > 0 ? missingBase / (curHourIdx + 1) : missingBase;
 
         labels = hourly.map(h => h.label);
-        mainValues = hourly.map(h => h.kwh);
-        mainLabel = 'Pemakaian (kWh)';
+        mainValues = hourly.map((h, idx) => {
+          if (idx > curHourIdx) return null;
+          runningKwh += (h.kwh || 0) + perHourBase;
+          return +runningKwh.toFixed(4);
+        });
+        mainLabel = 'Total Akumulasi (kWh)';
 
-        const activeHours = hourly.filter(h => h.avg_watts > 0 || h.kwh > 0);
+        const activeHours = hourly.filter((h, idx) => idx <= curHourIdx && (h.avg_watts > 0 || h.kwh > 0));
         tableEl.innerHTML = activeHours.length > 0
           ? [...activeHours].reverse().map(h => `
               <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
                 <span class="text-slate-300 font-medium">Jam ${h.label}</span>
                 <span class="text-slate-400">Avg ${h.avg_watts} W (Max ${h.peak_watts} W)</span>
-                <span class="text-emerald-400 font-bold">${Number(h.kwh).toFixed(4)} kWh (Rp ${Math.round(h.kwh * rate).toLocaleString('id-ID')})</span>
+                <span class="text-emerald-400 font-bold">+${Number(h.kwh).toFixed(4)} kWh</span>
               </div>`).join('')
-          : '<div class="text-slate-500">Data pemakaian per jam hari ini sedang berjalan...</div>';
+          : `<div class="text-slate-400">Total kumulatif hari ini s/d jam ${String(curHourIdx).padStart(2, '0')}:00: <b class="text-emerald-400">${displayTodayKwh} kWh</b></div>`;
 
       } else if (activePeriod === 'weekly') {
         document.getElementById('lblPeriodKwh').innerText = 'Total 7 Hari';
