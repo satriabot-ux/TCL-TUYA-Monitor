@@ -513,8 +513,10 @@
       let secondValues = [];
       let mainLabel = 'Pemakaian (kWh)';
       let secondLabel = 'Hemat AI SaveIn (kWh)';
+      const isDailyLine = activePeriod === 'daily';
+      const targetType = isDailyLine ? 'line' : 'bar';
 
-      if (activePeriod === 'daily') {
+      if (isDailyLine) {
         const hourly = analyticsData.daily_hourly || [];
         const sumHourlyKwh = hourly.reduce((acc, h) => acc + (h.kwh || 0), 0);
         const displayTodayKwh = Math.max(s.today_kwh || 0, Math.round(sumHourlyKwh * 100) / 100);
@@ -524,13 +526,11 @@
         document.getElementById('valPeriodSaved').innerText = s.today_ai_saved_kwh ?? 0;
         document.getElementById('valPeriodHours').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
         document.getElementById('workHoursToday').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
-        document.getElementById('chartSubtitle').innerText = 'Pemakaian Listrik per Jam Hari Ini (Update Tiap Jam & Reset 00:00)';
+        document.getElementById('chartSubtitle').innerText = 'Line Chart Pemakaian kWh per Jam (Live • Reset 00:00)';
 
         labels = hourly.map(h => h.label);
         mainValues = hourly.map(h => h.kwh);
-        secondValues = hourly.map(h => +(h.avg_watts / 1000.0).toFixed(3));
-        mainLabel = 'Konsumsi Jam Ini (kWh)';
-        secondLabel = 'Daya Rata-rata (kW)';
+        mainLabel = 'Pemakaian (kWh)';
 
         const activeHours = hourly.filter(h => h.avg_watts > 0 || h.kwh > 0);
         tableEl.innerHTML = activeHours.length > 0
@@ -538,7 +538,7 @@
               <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
                 <span class="text-slate-300 font-medium">Jam ${h.label}</span>
                 <span class="text-slate-400">Avg ${h.avg_watts} W (Max ${h.peak_watts} W)</span>
-                <span class="text-emerald-400 font-bold">${h.kwh} kWh (Rp ${Math.round(h.kwh * rate).toLocaleString('id-ID')})</span>
+                <span class="text-emerald-400 font-bold">${Number(h.kwh).toFixed(4)} kWh (Rp ${Math.round(h.kwh * rate).toLocaleString('id-ID')})</span>
               </div>`).join('')
           : '<div class="text-slate-500">Data pemakaian per jam hari ini sedang berjalan...</div>';
 
@@ -591,20 +591,27 @@
       }
 
       const ctx = document.getElementById('energyChart').getContext('2d');
-      if (energyChartInstance) {
-        energyChartInstance.data.labels = labels;
-        energyChartInstance.data.datasets[0].label = mainLabel;
-        energyChartInstance.data.datasets[0].data = mainValues;
-        energyChartInstance.data.datasets[1].label = secondLabel;
-        energyChartInstance.data.datasets[1].data = secondValues;
-        energyChartInstance.update('none');
-        return;
+      if (energyChartInstance && energyChartInstance.config.type !== targetType) {
+        energyChartInstance.destroy();
+        energyChartInstance = null;
       }
-      energyChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
+
+      const datasets = isDailyLine
+        ? [
+            {
+              label: mainLabel,
+              data: mainValues,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.18)',
+              borderWidth: 2.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              pointBackgroundColor: '#34d399',
+              fill: true,
+              tension: 0.3
+            }
+          ]
+        : [
             {
               label: mainLabel,
               data: mainValues,
@@ -621,7 +628,25 @@
               borderWidth: 1,
               borderRadius: 6
             }
-          ]
+          ];
+
+      if (energyChartInstance) {
+        energyChartInstance.data.labels = labels;
+        energyChartInstance.data.datasets[0].label = datasets[0].label;
+        energyChartInstance.data.datasets[0].data = datasets[0].data;
+        if (!isDailyLine && energyChartInstance.data.datasets[1]) {
+          energyChartInstance.data.datasets[1].label = datasets[1].label;
+          energyChartInstance.data.datasets[1].data = datasets[1].data;
+        }
+        energyChartInstance.update('none');
+        return;
+      }
+
+      energyChartInstance = new Chart(ctx, {
+        type: targetType,
+        data: {
+          labels: labels,
+          datasets: datasets
         },
         options: {
           responsive: true,
@@ -634,11 +659,23 @@
           },
           scales: {
             x: {
+              title: {
+                display: isDailyLine,
+                text: 'Jam (WIB)',
+                color: '#94a3b8',
+                font: { size: 10 }
+              },
               ticks: { color: '#94a3b8', font: { size: 10 } },
               grid: { color: 'rgba(148, 163, 184, 0.08)' }
             },
             y: {
               beginAtZero: true,
+              title: {
+                display: true,
+                text: 'kWh',
+                color: '#94a3b8',
+                font: { size: 10 }
+              },
               ticks: { color: '#94a3b8', font: { size: 10 } },
               grid: { color: 'rgba(148, 163, 184, 0.12)' }
             }
@@ -647,7 +684,13 @@
       });
     }
 
+    let lastStatusPollMs = 0;
+
     function renderDashboard(data) {
+      const nowMs = Date.now();
+      const deltaSec = lastStatusPollMs > 0 ? Math.min(30, Math.max(1, (nowMs - lastStatusPollMs) / 1000.0)) : 2.0;
+      lastStatusPollMs = nowMs;
+
       const banner = document.getElementById('alertBanner');
       if (data.warnings && data.warnings.length > 0) {
         banner.innerText = data.warnings.join(' | ');
@@ -678,6 +721,22 @@
         else if (watts > 25) compText = 'Low Watt / Eco SaveIn';
         else if (watts > 5) compText = 'Fan Only';
         document.getElementById('compressorState').innerText = compText;
+
+        // Live-update current hour kWh on the Daily Line Chart
+        if (analyticsData && Array.isArray(analyticsData.daily_hourly)) {
+          const wibDate = new Date(Date.now() + 7 * 3600 * 1000);
+          const curHourLabel = String(wibDate.getUTCHours()).padStart(2, '0') + ':00';
+          const slot = analyticsData.daily_hourly.find(h => h.label === curHourLabel);
+          if (slot) {
+            const incKwh = (watts / 1000.0) * (deltaSec / 3600.0);
+            slot.kwh = +(Number(slot.kwh || 0) + incKwh).toFixed(4);
+            slot.avg_watts = watts;
+            slot.peak_watts = Math.max(Number(slot.peak_watts || 0), watts);
+            if (activePeriod === 'daily') {
+              renderEnergyChart();
+            }
+          }
+        }
       }
 
       // Render TCL AC

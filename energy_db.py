@@ -207,7 +207,7 @@ class EnergyDatabase:
                 SELECT hour_str,
                        ROUND(AVG(watts), 1) AS avg_watts,
                        ROUND(MAX(watts), 1) AS peak_watts,
-                       ROUND(SUM(delta_kwh), 3) AS sum_kwh,
+                       ROUND(SUM(delta_kwh), 4) AS sum_kwh,
                        ROUND(AVG(room_temp), 1) AS avg_temp,
                        COUNT(*) AS samples
                 FROM power_samples
@@ -226,7 +226,7 @@ class EnergyDatabase:
                 avg_w = float(by_hour[h_key]["avg_watts"] or 0.0)
                 sum_kwh = float(by_hour[h_key]["sum_kwh"] or 0.0)
                 # Use accumulated delta_kwh if present, otherwise fallback to avg_w / 1000
-                effective_hour_kwh = round(sum_kwh if sum_kwh > 0 else (avg_w / 1000.0), 3)
+                effective_hour_kwh = round(sum_kwh if sum_kwh > 0 else (avg_w / 1000.0), 4)
                 result.append(
                     {
                         "label": h_key,
