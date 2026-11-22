@@ -3,37 +3,103 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#09090b" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel="manifest" href="/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <title>TCL SaveIn + Tuya Watt Monitor</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { background: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
-    .glass { background: rgba(30, 41, 59, 0.78); backdrop-filter: blur(12px); border: 1px solid rgba(148, 163, 184, 0.15); }
-    .glow-watt { box-shadow: 0 0 30px rgba(16, 185, 129, 0.15); }
-    .glow-ac { box-shadow: 0 0 30px rgba(56, 189, 248, 0.15); }
-    .tab-active { background: #0284c7; color: #ffffff; font-weight: 700; }
-    .tab-inactive { background: rgba(15, 23, 42, 0.6); color: #94a3b8; }
+    :root {
+      --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    body {
+      background-color: #09090b;
+      color: #fafafa;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .num {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    .surface-card {
+      background-color: #121215;
+      border: 1px solid #232329;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.55);
+    }
+    .surface-inset {
+      background-color: #09090b;
+      border: 1px solid #1f1f25;
+      border-radius: 12px;
+    }
+    .surface-header {
+      background-color: rgba(9, 9, 11, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #1f1f25;
+    }
+    .pressable {
+      transition: transform 140ms var(--ease-out-strong), background-color 140ms var(--ease-out-strong), border-color 140ms var(--ease-out-strong), color 140ms var(--ease-out-strong);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pressable:active {
+      transform: scale(0.97);
+    }
+    .pressable:focus-visible {
+      outline: 2px solid #0ea5e9;
+      outline-offset: 2px;
+    }
+    .tab-active {
+      background-color: #0ea5e9;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+    }
+    .tab-inactive {
+      background-color: transparent;
+      color: #a1a1aa;
+      font-weight: 500;
+    }
+    .tab-inactive:hover {
+      color: #e4e4e7;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pressable, .pressable:active {
+        transition: none !important;
+        transform: none !important;
+      }
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 9999px; }
   </style>
 </head>
 <body class="min-h-screen pb-16">
   <!-- Fullscreen Password Lock Overlay -->
-  <div id="loginOverlay" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="glass rounded-2xl max-w-sm w-full p-6 text-center space-y-4 border border-slate-700/80 shadow-2xl">
-      <div class="w-12 h-12 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center mx-auto text-2xl">
-        &#128274;
+  <div id="loginOverlay" class="fixed inset-0 z-50 bg-zinc-950/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="surface-card max-w-sm w-full p-6 text-center space-y-5">
+      <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/25 flex items-center justify-center mx-auto text-sky-400">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
       </div>
       <div>
-        <h2 class="text-base font-bold text-slate-100">TCL SaveIn &bull; Smart Monitor</h2>
-        <p class="text-xs text-slate-400 mt-1">Masukkan password akses untuk membuka kontrol AC & Watt Meter</p>
+        <h2 class="text-base font-bold text-zinc-100 tracking-tight">TCL SaveIn &bull; Smart Monitor</h2>
+        <p class="text-xs text-zinc-400 mt-1">Masukkan password akses untuk membuka kontrol AC &amp; telemetri daya</p>
       </div>
       <form onsubmit="submitLogin(event)" class="space-y-3">
         <input id="loginPasswordInput" type="password" placeholder="Masukkan Password..." autocomplete="current-password"
-          class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-center focus:outline-none focus:border-sky-400" />
-        <div id="loginErrorMsg" class="hidden text-xs text-rose-400 font-medium">Password salah, silakan coba lagi!</div>
-        <button type="submit" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 font-bold text-xs text-white transition">
+          class="w-full px-4 py-2.5 rounded-lg bg-zinc-950 border border-zinc-800 text-sm text-center text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-sky-500" />
+        <div id="loginErrorMsg" class="hidden text-xs text-rose-400 font-medium">Password salah, silakan coba lagi.</div>
+        <button type="submit" class="pressable w-full py-2.5 rounded-full bg-sky-500 hover:bg-sky-400 font-semibold text-xs text-white">
           Buka Dashboard
         </button>
       </form>
@@ -41,354 +107,420 @@
   </div>
 
   <!-- Header Bar -->
-  <header class="sticky top-0 z-30 glass px-4 py-3 flex items-center justify-between">
+  <header class="sticky top-0 z-30 surface-header px-4 py-3 flex items-center justify-between">
     <div class="flex items-center gap-2.5">
-      <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" id="statusDot"></div>
+      <span class="relative flex h-2.5 w-2.5">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" id="statusDot"></span>
+      </span>
       <div>
-        <h1 class="text-base font-bold tracking-tight">TCL SaveIn &bull; Smart Monitor</h1>
-        <p class="text-xs text-slate-400" id="subtitleStatus">Menghubungkan ke perangkat...</p>
+        <h1 class="text-sm font-bold tracking-tight text-zinc-100">TCL SaveIn &bull; Energy Monitor</h1>
+        <p class="text-[11px] text-zinc-400 num" id="subtitleStatus">Menghubungkan ke perangkat...</p>
       </div>
     </div>
     <div class="flex items-center gap-1.5">
-      <button onclick="refreshAll()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700">
-        Refresh
+      <button onclick="refreshAll()" aria-label="Segarkan Data" class="pressable px-3 py-1.5 rounded-full bg-zinc-900 hover:bg-zinc-800 text-xs font-medium text-zinc-200 border border-zinc-800 flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+          <path d="M21 3v5h-5"></path>
+        </svg>
+        <span>Segarkan</span>
       </button>
-      <button onclick="toggleModal('settingsModal')" class="px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-semibold">
+      <button onclick="toggleModal('settingsModal')" aria-label="Konfigurasi" class="pressable px-3 py-1.5 rounded-full bg-sky-500 hover:bg-sky-400 text-xs font-semibold text-white">
         Konfigurasi
       </button>
-      <button onclick="logoutApp()" title="Kunci Aplikasi" class="px-2.5 py-1.5 rounded-lg bg-rose-600/80 hover:bg-rose-500 text-xs font-semibold">
-        &#128274;
+      <button onclick="logoutApp()" title="Kunci Aplikasi" aria-label="Kunci Aplikasi" class="pressable p-1.5 rounded-full bg-zinc-900 hover:bg-rose-950/60 text-zinc-400 hover:text-rose-300 border border-zinc-800">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
       </button>
     </div>
   </header>
 
   <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
     <!-- Status Banner -->
-    <div id="alertBanner" class="hidden rounded-xl p-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs"></div>
+    <div id="alertBanner" class="hidden rounded-xl p-3 bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs"></div>
 
     <!-- Real-time Watt Meter Card (Tuya Smart Plug) -->
-    <section class="glass glow-watt rounded-2xl p-5">
+    <section class="surface-card p-5">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-xs uppercase tracking-wider text-emerald-400 font-semibold">Tuya Smart Plug &bull; Daya Aktual</span>
-        <span id="plugSourceBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Real-Time</span>
+        <div class="flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Tuya Smart Plug &bull; Daya Aktual</span>
+        </div>
+        <span id="plugSourceBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 font-medium">Real-Time</span>
       </div>
 
       <div class="flex items-baseline justify-between">
         <div>
           <div class="flex items-baseline gap-1.5">
-            <span id="wattValue" class="text-5xl font-extrabold tracking-tight text-emerald-400">--</span>
-            <span class="text-lg font-semibold text-slate-400">Watt</span>
+            <span id="wattValue" class="text-5xl font-extrabold text-zinc-50 num">--</span>
+            <span class="text-base font-semibold text-emerald-400">W</span>
           </div>
-          <p id="costPerHour" class="text-xs text-slate-400 mt-1">Estimasi biaya aktif: Rp -- / jam</p>
+          <p id="costPerHour" class="text-xs text-zinc-400 mt-1 num">Estimasi biaya aktif: Rp -- / jam</p>
         </div>
         <div class="text-right">
-          <div class="text-xs text-slate-400">Status Beban</div>
-          <div id="compressorState" class="text-sm font-bold text-slate-200 mt-0.5">--</div>
+          <div class="text-[11px] text-zinc-400">Status Kompresor</div>
+          <div id="compressorState" class="text-xs font-semibold text-zinc-200 mt-0.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 inline-block">--</div>
         </div>
       </div>
 
-      <div class="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-slate-800 text-center">
-        <div class="bg-slate-900/60 rounded-xl p-2">
-          <div class="text-[10px] text-slate-400">Tegangan</div>
-          <div class="text-xs font-bold text-slate-100 mt-0.5"><span id="voltValue">--</span> V</div>
+      <div class="grid grid-cols-4 gap-2 mt-4 pt-3.5 border-t border-zinc-800/80 text-center">
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Tegangan</div>
+          <div class="text-xs font-bold text-zinc-100 mt-0.5 num"><span id="voltValue">--</span> V</div>
         </div>
-        <div class="bg-slate-900/60 rounded-xl p-2">
-          <div class="text-[10px] text-slate-400">Arus Listrik</div>
-          <div class="text-xs font-bold text-slate-100 mt-0.5"><span id="ampValue">--</span> A</div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Arus Listrik</div>
+          <div class="text-xs font-bold text-zinc-100 mt-0.5 num"><span id="ampValue">--</span> A</div>
         </div>
-        <div class="bg-slate-900/60 rounded-xl p-2">
-          <div class="text-[10px] text-slate-400">Hari Ini</div>
-          <div class="text-xs font-bold text-emerald-300 mt-0.5"><span id="kwhValue">--</span> kWh</div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Hari Ini</div>
+          <div class="text-xs font-bold text-emerald-400 mt-0.5 num"><span id="kwhValue">--</span> kWh</div>
         </div>
-        <div class="bg-slate-900/60 rounded-xl p-2 border border-sky-500/30">
-          <div class="text-[10px] text-sky-400">Menyala Hari Ini</div>
-          <div class="text-xs font-bold text-sky-300 mt-0.5"><span id="workHoursToday">--</span></div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Durasi Nyala</div>
+          <div class="text-xs font-bold text-sky-400 mt-0.5 num"><span id="workHoursToday">--</span></div>
         </div>
       </div>
     </section>
 
     <!-- Grafik Pemakaian Listrik Harian, Mingguan & Bulanan -->
-    <section class="glass rounded-2xl p-5 space-y-3">
+    <section class="surface-card p-5 space-y-3.5">
       <div class="flex items-center justify-between">
         <div>
-          <span class="text-xs uppercase tracking-wider text-sky-400 font-semibold">Grafik Pemakaian & Penghematan</span>
-          <h3 id="chartSubtitle" class="text-xs text-slate-400 mt-0.5">Konsumsi kWh & Penghematan AI SaveIn</h3>
+          <span class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Analitik Energi &amp; Penghematan</span>
+          <h3 id="chartSubtitle" class="text-xs text-zinc-300 font-medium mt-0.5">Konsumsi kWh &amp; Penghematan AI SaveIn</h3>
         </div>
       </div>
 
-      <!-- Tab Switcher: Harian | Mingguan | Bulanan -->
-      <div class="grid grid-cols-3 gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
-        <button id="tabDaily" onclick="switchChartPeriod('daily')" class="py-1.5 rounded-lg text-xs transition tab-inactive">
+      <!-- Segmented Pill Switcher: Harian | Mingguan | Bulanan -->
+      <div class="grid grid-cols-3 gap-1 bg-zinc-950 p-1 rounded-full border border-zinc-800/90">
+        <button id="tabDaily" onclick="switchChartPeriod('daily')" class="pressable py-1.5 rounded-full text-xs tab-inactive">
           Harian (Per Jam)
         </button>
-        <button id="tabWeekly" onclick="switchChartPeriod('weekly')" class="py-1.5 rounded-lg text-xs transition tab-active">
+        <button id="tabWeekly" onclick="switchChartPeriod('weekly')" class="pressable py-1.5 rounded-full text-xs tab-active">
           Mingguan (7 Hari)
         </button>
-        <button id="tabMonthly" onclick="switchChartPeriod('monthly')" class="py-1.5 rounded-lg text-xs transition tab-inactive">
+        <button id="tabMonthly" onclick="switchChartPeriod('monthly')" class="pressable py-1.5 rounded-full text-xs tab-inactive">
           Bulanan (12 Bln)
         </button>
       </div>
 
       <!-- Summary KPI Strip for Selected Period -->
-      <div class="grid grid-cols-4 gap-1.5 text-center">
-        <div class="bg-slate-900/65 rounded-xl p-2 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400" id="lblPeriodKwh">Total 7 Hari</div>
-          <div class="text-xs font-extrabold text-emerald-400 mt-0.5"><span id="valPeriodKwh">--</span> kWh</div>
+      <div class="grid grid-cols-4 gap-2 text-center">
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium" id="lblPeriodKwh">Total 7 Hari</div>
+          <div class="text-xs font-bold text-emerald-400 mt-0.5 num"><span id="valPeriodKwh">--</span> kWh</div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400">Biaya</div>
-          <div class="text-xs font-extrabold text-slate-100 mt-0.5">Rp <span id="valPeriodCost">--</span></div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Biaya</div>
+          <div class="text-xs font-bold text-zinc-100 mt-0.5 num">Rp <span id="valPeriodCost">--</span></div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2 border border-sky-500/30">
-          <div class="text-[10px] text-sky-400">Hemat SaveIn</div>
-          <div class="text-xs font-extrabold text-sky-300 mt-0.5"><span id="valPeriodSaved">--</span> kWh</div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Hemat SaveIn</div>
+          <div class="text-xs font-bold text-sky-400 mt-0.5 num"><span id="valPeriodSaved">--</span> kWh</div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2 border border-amber-500/30">
-          <div class="text-[10px] text-amber-400">Durasi Nyala</div>
-          <div class="text-xs font-extrabold text-amber-300 mt-0.5"><span id="valPeriodHours">--</span></div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Durasi Nyala</div>
+          <div class="text-xs font-bold text-zinc-200 mt-0.5 num"><span id="valPeriodHours">--</span></div>
         </div>
       </div>
 
       <!-- Canvas Chart -->
-      <div class="relative h-56 w-full pt-2">
+      <div class="relative h-56 w-full pt-1">
         <canvas id="energyChart"></canvas>
       </div>
 
       <!-- Breakdown Table -->
-      <div id="periodTableWrap" class="pt-2 border-t border-slate-800/80 max-h-40 overflow-y-auto space-y-1 text-xs"></div>
+      <div id="periodTableWrap" class="pt-2.5 border-t border-zinc-800/80 max-h-40 overflow-y-auto space-y-1 text-xs num"></div>
     </section>
 
     <!-- TCL SaveIn Air Conditioner Control Card -->
-    <section class="glass glow-ac rounded-2xl p-5">
+    <section class="surface-card p-5">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <span class="text-xs uppercase tracking-wider text-sky-400 font-semibold">Remote Kontrol AC TCL SaveIn</span>
-          <h2 id="acName" class="text-sm font-bold text-slate-200 mt-0.5">AC TCL SAVEIN</h2>
+          <span class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Kontrol AC TCL SaveIn</span>
+          <h2 id="acName" class="text-sm font-bold text-zinc-100 mt-0.5 num">AC TCL SAVEIN</h2>
         </div>
-        <button id="btnPower" onclick="toggleAcPower()" class="px-4 py-2 rounded-xl font-bold text-xs bg-slate-700 text-slate-200 transition">
-          POWER: --
+        <button id="btnPower" onclick="toggleAcPower()" class="pressable px-4 py-2 rounded-full font-semibold text-xs bg-zinc-800 text-zinc-300 border border-zinc-700 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+            <line x1="12" y1="2" x2="12" y2="12"></line>
+          </svg>
+          <span id="btnPowerText">POWER: --</span>
         </button>
       </div>
 
       <!-- Temperature Control Dial -->
-      <div class="flex items-center justify-between bg-slate-900/70 rounded-2xl p-4 my-2 border border-slate-800">
-        <button onclick="adjustTemp(-1)" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-2xl font-bold text-sky-400 flex items-center justify-center border border-slate-700">
-          &minus;
+      <div class="flex items-center justify-between surface-inset p-4 my-2">
+        <button onclick="adjustTemp(-1)" aria-label="Turunkan Suhu" class="pressable w-12 h-12 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xl font-bold text-zinc-200 flex items-center justify-center border border-zinc-800">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
         <div class="text-center">
-          <div class="text-xs text-slate-400">Target Suhu</div>
-          <div class="flex items-start justify-center">
-            <span id="targetTemp" class="text-5xl font-extrabold text-sky-400">--</span>
-            <span class="text-xl font-bold text-sky-400 mt-1">&deg;C</span>
+          <div class="text-[11px] text-zinc-400 font-medium">Target Suhu</div>
+          <div class="flex items-start justify-center mt-0.5">
+            <span id="targetTemp" class="text-5xl font-extrabold text-zinc-50 num">--</span>
+            <span class="text-lg font-bold text-sky-400 mt-1">&deg;C</span>
           </div>
-          <div class="text-xs text-slate-400 mt-1">
-            Ruangan: <span id="currentTemp" class="font-bold text-slate-200">--</span>&deg;C
-            <span id="outdoorTempWrap" class="hidden"> &bull; Outdoor: <span id="outdoorTemp">--</span>&deg;C</span>
-            <span id="coilTempWrap" class="hidden"> &bull; Evap: <span id="coilTemp">--</span>&deg;C</span>
+          <div class="text-xs text-zinc-400 mt-1 num">
+            Ruangan: <span id="currentTemp" class="font-semibold text-zinc-200">--</span>&deg;C
+            <span id="outdoorTempWrap" class="hidden"> &bull; Outdoor: <span id="outdoorTemp" class="font-semibold text-zinc-200">--</span>&deg;C</span>
+            <span id="coilTempWrap" class="hidden"> &bull; Evap: <span id="coilTemp" class="font-semibold text-zinc-200">--</span>&deg;C</span>
           </div>
         </div>
-        <button onclick="adjustTemp(1)" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-2xl font-bold text-sky-400 flex items-center justify-center border border-slate-700">
-          +
+        <button onclick="adjustTemp(1)" aria-label="Naikkan Suhu" class="pressable w-12 h-12 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xl font-bold text-zinc-200 flex items-center justify-center border border-zinc-800">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
       </div>
 
       <!-- Mode Operasi AC (Cool, Dry, Fan, Auto) -->
       <div class="mt-4">
-        <div class="flex items-center justify-between mb-1.5">
-          <span class="text-xs text-slate-400 font-medium">Mode Operasi</span>
-          <span id="activeModeLabel" class="text-xs font-bold text-sky-400">Cool</span>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-zinc-400 font-medium">Mode Operasi</span>
+          <span id="activeModeLabel" class="text-xs font-semibold text-sky-400">Cool</span>
         </div>
-        <div class="grid grid-cols-4 gap-1.5">
-          <button id="modeBtn1" onclick="setWorkMode(1)" class="py-2 rounded-xl bg-slate-800 text-xs font-semibold border border-slate-700 transition">&#10052; Cool</button>
-          <button id="modeBtn2" onclick="setWorkMode(2)" class="py-2 rounded-xl bg-slate-800 text-xs font-semibold border border-slate-700 transition">&#128167; Dry</button>
-          <button id="modeBtn3" onclick="setWorkMode(3)" class="py-2 rounded-xl bg-slate-800 text-xs font-semibold border border-slate-700 transition">&#127744; Fan</button>
-          <button id="modeBtn0" onclick="setWorkMode(0)" class="py-2 rounded-xl bg-slate-800 text-xs font-semibold border border-slate-700 transition">&#9851; Auto</button>
+        <div class="grid grid-cols-4 gap-2">
+          <button id="modeBtn1" onclick="setWorkMode(1)" class="pressable py-2.5 rounded-xl bg-zinc-900 text-xs font-semibold border border-zinc-800 flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line><path d="m20 16-4-4 4-4"></path><path d="m4 8 4 4-4 4"></path><path d="m16 4-4 4-4-4"></path><path d="m8 20 4-4 4 4"></path></svg>
+            <span>Cool</span>
+          </button>
+          <button id="modeBtn2" onclick="setWorkMode(2)" class="pressable py-2.5 rounded-xl bg-zinc-900 text-xs font-semibold border border-zinc-800 flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+            <span>Dry</span>
+          </button>
+          <button id="modeBtn3" onclick="setWorkMode(3)" class="pressable py-2.5 rounded-xl bg-zinc-900 text-xs font-semibold border border-zinc-800 flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"></path><path d="M9.6 4.6A2 2 0 1 1 11 8H2"></path><path d="M12.6 19.4A2 2 0 1 0 14 16H2"></path></svg>
+            <span>Fan</span>
+          </button>
+          <button id="modeBtn0" onclick="setWorkMode(0)" class="pressable py-2.5 rounded-xl bg-zinc-900 text-xs font-semibold border border-zinc-800 flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>
+            <span>Auto</span>
+          </button>
         </div>
       </div>
 
       <!-- Kecepatan Kipas 7-Gear + Auto & Mute (Sesuai Aplikasi TCL Home) -->
-      <div class="mt-4 pt-3 border-t border-slate-800">
-        <div class="flex items-center justify-between mb-1.5">
-          <span class="text-xs text-slate-400 font-medium">Kecepatan Kipas (7-Gear Fan Speed)</span>
-          <span id="fanSpeedLabel" class="text-xs font-bold text-sky-400">Auto</span>
+      <div class="mt-4 pt-3.5 border-t border-zinc-800/80">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-zinc-400 font-medium">Kecepatan Kipas (7-Gear)</span>
+          <span id="fanSpeedLabel" class="text-xs font-semibold text-sky-400 num">Auto</span>
         </div>
-        <div class="grid grid-cols-8 gap-1">
-          <button id="fanGear0" onclick="setFanGear(0)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">Auto</button>
-          <button id="fanGear1" onclick="setFanGear(1)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">1</button>
-          <button id="fanGear2" onclick="setFanGear(2)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">2</button>
-          <button id="fanGear3" onclick="setFanGear(3)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">3</button>
-          <button id="fanGear4" onclick="setFanGear(4)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">4</button>
-          <button id="fanGear5" onclick="setFanGear(5)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">5</button>
-          <button id="fanGear6" onclick="setFanGear(6)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">6</button>
-          <button id="fanGear7" onclick="setFanGear(7)" class="py-1.5 rounded-lg bg-slate-800 text-[11px] font-bold border border-slate-700">7</button>
+        <div class="grid grid-cols-8 gap-1.5 num">
+          <button id="fanGear0" onclick="setFanGear(0)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">Auto</button>
+          <button id="fanGear1" onclick="setFanGear(1)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">1</button>
+          <button id="fanGear2" onclick="setFanGear(2)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">2</button>
+          <button id="fanGear3" onclick="setFanGear(3)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">3</button>
+          <button id="fanGear4" onclick="setFanGear(4)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">4</button>
+          <button id="fanGear5" onclick="setFanGear(5)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">5</button>
+          <button id="fanGear6" onclick="setFanGear(6)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">6</button>
+          <button id="fanGear7" onclick="setFanGear(7)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">7</button>
         </div>
       </div>
 
       <!-- Tombol Fitur Lengkap Sesuai Aplikasi TCL Home (1 Tombol AI Eco Terpadu) -->
-      <div class="mt-4 pt-3 border-t border-slate-800">
-        <div class="text-xs text-slate-400 font-medium mb-2">Fitur & Mode Pintar TCL Home</div>
+      <div class="mt-4 pt-3.5 border-t border-zinc-800/80">
+        <div class="text-xs text-zinc-400 font-medium mb-2">Fitur &amp; Mode Pintar TCL Home</div>
         <div class="grid grid-cols-3 gap-2">
-          <button id="btnAiEco" onclick="toggleAiEco()" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
-            <div class="text-xs font-bold text-slate-200">&#127807; AI Eco</div>
-            <div id="stateAiEco" class="text-[10px] text-slate-400 mt-0.5">Nonaktif</div>
+          <button id="btnAiEco" onclick="toggleAiEco()" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
+              <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+              <span>AI Eco</span>
+            </div>
+            <div id="stateAiEco" class="text-[11px] text-zinc-400 mt-1">Nonaktif</div>
           </button>
-          <button id="btnTurbo" onclick="toggleTurbo()" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
-            <div class="text-xs font-bold text-slate-200">&#9889; Turbo</div>
-            <div id="stateTurbo" class="text-[10px] text-slate-400 mt-0.5">Nonaktif</div>
+
+          <button id="btnTurbo" onclick="toggleTurbo()" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Turbo</span>
+            </div>
+            <div id="stateTurbo" class="text-[11px] text-zinc-400 mt-1">Nonaktif</div>
           </button>
-          <button id="btnVSwing" onclick="toggleVerticalSwing()" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
-            <div class="text-xs font-bold text-slate-200">&#8597; Swing Atas-Bawah</div>
-            <div id="stateVSwing" class="text-[10px] text-slate-400 mt-0.5">Mati</div>
+
+          <button id="btnVSwing" onclick="toggleVerticalSwing()" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"></path><path d="m7 9 5-5 5 5"></path></svg>
+              <span>Swing</span>
+            </div>
+            <div id="stateVSwing" class="text-[11px] text-zinc-400 mt-1">Tetap</div>
           </button>
-          <button id="btnSleep" onclick="toggleSleep()" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
-            <div class="text-xs font-bold text-slate-200">&#127769; Mode Tidur</div>
-            <div id="stateSleep" class="text-[10px] text-slate-400 mt-0.5">Nonaktif</div>
+
+          <button id="btnSleep" onclick="toggleSleep()" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+              <span>Tidur</span>
+            </div>
+            <div id="stateSleep" class="text-[11px] text-zinc-400 mt-1">Nonaktif</div>
           </button>
-          <button id="btnHealthy" onclick="toggleFeature('healthy')" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
-            <div class="text-xs font-bold text-slate-200">&#10024; Health / Ion</div>
-            <div id="stateHealthy" class="text-[10px] text-slate-400 mt-0.5">Nonaktif</div>
+
+          <button id="btnHealthy" onclick="toggleFeature('healthy')" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <span>Health Ion</span>
+            </div>
+            <div id="stateHealthy" class="text-[11px] text-zinc-400 mt-1">Nonaktif</div>
           </button>
-          <button id="btnScreen" onclick="toggleFeature('screen')" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
-            <div class="text-xs font-bold text-slate-200">&#128161; Layar LED</div>
-            <div id="stateScreen" class="text-[10px] text-slate-400 mt-0.5">Menyala</div>
+
+          <button id="btnScreen" onclick="toggleFeature('screen')" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              <span>Layar LED</span>
+            </div>
+            <div id="stateScreen" class="text-[11px] text-zinc-400 mt-1">Menyala</div>
           </button>
-          <button id="btnBeep" onclick="toggleFeature('beepSwitch')" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
-            <div class="text-xs font-bold text-slate-200">&#128266; Suara Beep</div>
-            <div id="stateBeep" class="text-[10px] text-slate-400 mt-0.5">Aktif</div>
+
+          <button id="btnBeep" onclick="toggleFeature('beepSwitch')" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              <span>Suara Beep</span>
+            </div>
+            <div id="stateBeep" class="text-[11px] text-zinc-400 mt-1">Aktif</div>
           </button>
-          <button id="btnSelfClean" onclick="toggleFeature('selfClean')" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
-            <div class="text-xs font-bold text-slate-200">&#129532; Self Clean</div>
-            <div id="stateSelfClean" class="text-[10px] text-slate-400 mt-0.5">Standby</div>
+
+          <button id="btnSelfClean" onclick="toggleFeature('selfClean')" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+              <span>Self Clean</span>
+            </div>
+            <div id="stateSelfClean" class="text-[11px] text-zinc-400 mt-1">Standby</div>
           </button>
-          <button id="btnAntiMildew" onclick="toggleFeature('antiMoldew')" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition">
-            <div class="text-xs font-bold text-slate-200">&#128737; Anti Jamur</div>
-            <div id="stateAntiMildew" class="text-[10px] text-slate-400 mt-0.5">Nonaktif</div>
+
+          <button id="btnAntiMildew" onclick="toggleFeature('antiMoldew')" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+              <span>Anti Jamur</span>
+            </div>
+            <div id="stateAntiMildew" class="text-[11px] text-zinc-400 mt-1">Nonaktif</div>
           </button>
         </div>
       </div>
 
       <!-- Generator Mode (SaveIn Gear Limit L1 - L6) -->
-      <div class="mt-4 pt-3 border-t border-slate-800">
+      <div class="mt-4 pt-3.5 border-t border-zinc-800/80">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs text-slate-400 font-medium">Generator Mode (Pembatas Daya Kompresor)</span>
-          <span id="genModeLabel" class="text-xs font-bold text-sky-400">Off (Normal)</span>
+          <span class="text-xs text-zinc-400 font-medium">Generator Mode (Pembatas Daya)</span>
+          <span id="genModeLabel" class="text-xs font-semibold text-sky-400 num">Off (100%)</span>
         </div>
-        <div class="grid grid-cols-7 gap-1">
-          <button id="genBtn0" onclick="setCommand({generatorMode: 0})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">Off</button>
-          <button id="genBtn1" onclick="setCommand({generatorMode: 1})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L1</button>
-          <button id="genBtn2" onclick="setCommand({generatorMode: 2})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L2</button>
-          <button id="genBtn3" onclick="setCommand({generatorMode: 3})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L3</button>
-          <button id="genBtn4" onclick="setCommand({generatorMode: 4})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L4</button>
-          <button id="genBtn5" onclick="setCommand({generatorMode: 5})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L5</button>
-          <button id="genBtn6" onclick="setCommand({generatorMode: 6})" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold border border-slate-700">L6</button>
+        <div class="grid grid-cols-7 gap-1.5 num">
+          <button id="genBtn0" onclick="setCommand({generatorMode: 0})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">Off</button>
+          <button id="genBtn1" onclick="setCommand({generatorMode: 1})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L1</button>
+          <button id="genBtn2" onclick="setCommand({generatorMode: 2})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L2</button>
+          <button id="genBtn3" onclick="setCommand({generatorMode: 3})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L3</button>
+          <button id="genBtn4" onclick="setCommand({generatorMode: 4})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L4</button>
+          <button id="genBtn5" onclick="setCommand({generatorMode: 5})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L5</button>
+          <button id="genBtn6" onclick="setCommand({generatorMode: 6})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L6</button>
         </div>
       </div>
     </section>
 
     <!-- Diagnostik & Sensor Teknis AC TCL SaveIn -->
-    <section class="glass rounded-2xl p-5 space-y-3">
+    <section class="surface-card p-5 space-y-3.5">
       <div class="flex items-center justify-between">
         <div>
-          <span class="text-xs uppercase tracking-wider text-sky-400 font-semibold">Diagnostik & Sensor Teknis AC</span>
-          <h3 class="text-xs text-slate-400 mt-0.5">Telemetri Langsung Unit Indoor & Outdoor</h3>
+          <span class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Diagnostik &amp; Sensor Teknis</span>
+          <h3 class="text-xs text-zinc-300 font-medium mt-0.5">Telemetri Unit Indoor &amp; Outdoor</h3>
         </div>
-        <span id="diagErrorBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold">Normal</span>
+        <span id="diagErrorBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 font-medium">Normal</span>
       </div>
 
-      <div class="grid grid-cols-3 gap-2 text-center">
-        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400">Kompresor</div>
-          <div class="text-xs font-extrabold text-sky-300 mt-0.5"><span id="diagCompFreq">--</span> Hz</div>
+      <div class="grid grid-cols-3 gap-2 text-center num">
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Kompresor</div>
+          <div class="text-xs font-bold text-zinc-100 mt-0.5"><span id="diagCompFreq">--</span> Hz</div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400">Kipas Outdoor</div>
-          <div class="text-xs font-extrabold text-slate-100 mt-0.5"><span id="diagOutdoorFan">--</span> RPM</div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Kipas Outdoor</div>
+          <div class="text-xs font-bold text-zinc-100 mt-0.5"><span id="diagOutdoorFan">--</span> RPM</div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400">Kipas Indoor</div>
-          <div class="text-xs font-extrabold text-slate-100 mt-0.5"><span id="diagIndoorFanPct">--</span>%</div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Kipas Indoor</div>
+          <div class="text-xs font-bold text-zinc-100 mt-0.5"><span id="diagIndoorFanPct">--</span>%</div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400">Suhu Evap Indoor</div>
-          <div class="text-xs font-extrabold text-cyan-300 mt-0.5"><span id="diagCoilTemp">--</span>&deg;C</div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Suhu Evap Indoor</div>
+          <div class="text-xs font-bold text-sky-400 mt-0.5"><span id="diagCoilTemp">--</span>&deg;C</div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400">Katup EEV Outdoor</div>
-          <div class="text-xs font-extrabold text-slate-100 mt-0.5"><span id="diagEevDegree">--</span></div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Katup EEV</div>
+          <div class="text-xs font-bold text-zinc-100 mt-0.5"><span id="diagEevDegree">--</span></div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400">Status Filter</div>
-          <div class="text-xs font-extrabold text-emerald-400 mt-0.5" id="diagFilterStatus">Bersih</div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Status Filter</div>
+          <div class="text-xs font-bold text-emerald-400 mt-0.5" id="diagFilterStatus">Bersih</div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400">AI SaveIn Aktif</div>
-          <div class="text-xs font-extrabold text-sky-300 mt-0.5" id="diagAiWorkTime">--</div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">AI SaveIn Aktif</div>
+          <div class="text-xs font-bold text-sky-400 mt-0.5" id="diagAiWorkTime">--</div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400">AI Self-Learn</div>
-          <div class="text-xs font-extrabold text-slate-100 mt-0.5" id="diagSelfLearn">--</div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">AI Self-Learn</div>
+          <div class="text-xs font-bold text-zinc-100 mt-0.5" id="diagSelfLearn">--</div>
         </div>
-        <div class="bg-slate-900/65 rounded-xl p-2.5 border border-slate-800/80">
-          <div class="text-[10px] text-slate-400">Self Clean</div>
-          <div class="text-xs font-extrabold text-slate-100 mt-0.5" id="diagSelfCleanPct">0%</div>
+        <div class="surface-inset p-2.5">
+          <div class="text-[10px] text-zinc-400 font-medium">Self Clean</div>
+          <div class="text-xs font-bold text-zinc-100 mt-0.5" id="diagSelfCleanPct">Standby</div>
         </div>
       </div>
     </section>
 
     <!-- Live Log Card -->
-    <section class="glass rounded-2xl p-4">
+    <section class="surface-card p-4">
       <div class="flex items-center justify-between mb-2">
-        <h3 class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Log Real-Time Suhu vs Watt</h3>
-        <span class="text-[11px] text-slate-500">Auto-refresh 5 dtk</span>
+        <h3 class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Log Telemetri Suhu vs Watt</h3>
+        <span class="text-[11px] text-zinc-500 num">Interval 2 dtk</span>
       </div>
-      <div id="historyList" class="space-y-1.5 text-xs text-slate-300 max-h-36 overflow-y-auto">
-        <div class="text-slate-500">Menunggu pembacaan data...</div>
+      <div id="historyList" class="space-y-1 text-xs text-zinc-300 max-h-36 overflow-y-auto num">
+        <div class="text-zinc-500">Menunggu pembacaan data...</div>
       </div>
     </section>
   </main>
 
   <!-- Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 max-h-[90vh] overflow-y-auto space-y-4">
+  <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="surface-card max-w-md w-full p-5 max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-base font-bold">Konfigurasi Akun TCL Home & Tuya</h2>
-        <button onclick="toggleModal('settingsModal')" class="text-slate-400 hover:text-white text-sm">Tutup</button>
+        <h2 class="text-sm font-bold text-zinc-100">Konfigurasi Akun TCL Home &amp; Tuya</h2>
+        <button onclick="toggleModal('settingsModal')" class="pressable px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white text-xs">Tutup</button>
       </div>
 
       <!-- TCL Home Credentials -->
-      <div class="space-y-2 bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/70">
-        <div class="text-xs font-bold text-sky-400 uppercase">1. Akun Aplikasi TCL Home (AC SaveIn)</div>
-        <input id="tclUser" type="text" placeholder="Email / Nomor HP TCL Home" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
-        <input id="tclPass" type="password" placeholder="Password TCL Home" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
-        <input id="tclDeviceId" type="text" placeholder="Device ID (Kosongkan untuk deteksi otomatis)" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+      <div class="space-y-2 surface-inset p-3.5">
+        <div class="text-[11px] font-bold text-sky-400 uppercase tracking-wider">1. Akun Aplikasi TCL Home (AC SaveIn)</div>
+        <input id="tclUser" type="text" placeholder="Email / Nomor HP TCL Home" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
+        <input id="tclPass" type="password" placeholder="Password TCL Home" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
+        <input id="tclDeviceId" type="text" placeholder="Device ID (Kosongkan untuk deteksi otomatis)" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
       </div>
 
       <!-- Tuya Smart Plug Credentials -->
-      <div class="space-y-2 bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/70">
-        <div class="text-xs font-bold text-emerald-400 uppercase">2. Smart Plug Tuya (Pembaca Watt Aktual)</div>
-        <select id="tuyaMode" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs">
+      <div class="space-y-2 surface-inset p-3.5">
+        <div class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">2. Smart Plug Tuya (Pembaca Watt Aktual)</div>
+        <select id="tuyaMode" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500">
           <option value="cloud">Hybrid (Local Wi-Fi v3.4 + Tuya Cloud)</option>
           <option value="local">Tuya Local Wi-Fi Only</option>
         </select>
         <div class="grid grid-cols-2 gap-2">
-          <input id="tuyaRegion" type="text" value="sg" placeholder="Region (sg / us / eu / cn)" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
-          <input id="tuyaDeviceId" type="text" placeholder="Tuya Device ID" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+          <input id="tuyaRegion" type="text" value="sg" placeholder="Region (sg / us / eu / cn)" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
+          <input id="tuyaDeviceId" type="text" placeholder="Tuya Device ID" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
         </div>
-        <input id="tuyaKey" type="text" placeholder="Tuya Cloud Access ID (Client ID)" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
-        <input id="tuyaSecret" type="password" placeholder="Tuya Cloud Access Secret" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+        <input id="tuyaKey" type="text" placeholder="Tuya Cloud Access ID (Client ID)" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
+        <input id="tuyaSecret" type="password" placeholder="Tuya Cloud Access Secret" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
         <div class="grid grid-cols-2 gap-2 pt-1">
-          <input id="tuyaLocalIp" type="text" placeholder="IP Lokal (192.168.100.59)" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
-          <input id="tuyaLocalKey" type="text" placeholder="Local Key" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+          <input id="tuyaLocalIp" type="text" placeholder="IP Lokal (192.168.100.59)" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
+          <input id="tuyaLocalKey" type="text" placeholder="Local Key" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
         </div>
       </div>
 
       <div class="space-y-1">
-        <label class="text-xs text-slate-400">Tarif Listrik per kWh (Rp)</label>
-        <input id="tarifPln" type="number" value="1444.70" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs" />
+        <label class="text-xs text-zinc-400">Tarif Listrik per kWh (Rp)</label>
+        <input id="tarifPln" type="number" value="1444.70" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 num focus:outline-none focus:border-sky-500" />
       </div>
 
-      <button onclick="saveConfig()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-xs">
-        Simpan & Hubungkan Perangkat
+      <button onclick="saveConfig()" class="pressable w-full py-2.5 rounded-full bg-sky-500 hover:bg-sky-400 font-semibold text-xs text-white">
+        Simpan Konfigurasi
       </button>
     </div>
   </div>
@@ -525,7 +657,6 @@
 
     function scheduleHourlyAndMidnightChartRefresh() {
       const now = new Date();
-      // Schedule next exact top-of-hour refresh (e.g., 01:00, 02:00, ..., 00:00)
       const nextHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1, 0, 3);
       const msUntilNextHour = Math.max(5000, nextHour.getTime() - now.getTime());
       setTimeout(async () => {
@@ -533,7 +664,6 @@
         scheduleHourlyAndMidnightChartRefresh();
       }, msUntilNextHour);
 
-      // Also silently update today's live kWh / weekly / monthly numbers every 30s without chart animation
       setInterval(() => {
         if (appToken) refreshAnalytics();
       }, 30000);
@@ -544,9 +674,9 @@
       ['Daily', 'Weekly', 'Monthly'].forEach(p => {
         const btn = document.getElementById('tab' + p);
         if (p.toLowerCase() === period) {
-          btn.className = 'py-1.5 rounded-lg text-xs transition tab-active';
+          btn.className = 'pressable py-1.5 rounded-full text-xs tab-active';
         } else {
-          btn.className = 'py-1.5 rounded-lg text-xs transition tab-inactive';
+          btn.className = 'pressable py-1.5 rounded-full text-xs tab-inactive';
         }
       });
       renderEnergyChart();
@@ -581,7 +711,6 @@
         const wibNow = new Date(Date.now() + 7 * 3600 * 1000);
         const curHourIdx = wibNow.getUTCHours();
 
-        // Build cumulative increasing kWh curve from 00:00 up to current hour (future hours = null)
         let runningKwh = 0;
         const missingBase = Math.max(0, (s.today_kwh || 0) - sumHourlyKwh);
         const perHourBase = curHourIdx > 0 ? missingBase / (curHourIdx + 1) : missingBase;
@@ -597,12 +726,12 @@
         const activeHours = hourly.filter((h, idx) => idx <= curHourIdx && (h.avg_watts > 0 || h.kwh > 0));
         tableEl.innerHTML = activeHours.length > 0
           ? [...activeHours].reverse().map(h => `
-              <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
-                <span class="text-slate-300 font-medium">Jam ${h.label}</span>
-                <span class="text-slate-400">Avg ${h.avg_watts} W (Max ${h.peak_watts} W)</span>
-                <span class="text-emerald-400 font-bold">+${Number(h.kwh).toFixed(4)} kWh</span>
+              <div class="flex justify-between items-center py-1.5 border-b border-zinc-800/70">
+                <span class="text-zinc-300 font-medium">Jam ${h.label}</span>
+                <span class="text-zinc-400">Avg ${h.avg_watts} W (Max ${h.peak_watts} W)</span>
+                <span class="text-emerald-400 font-semibold">+${Number(h.kwh).toFixed(4)} kWh</span>
               </div>`).join('')
-          : `<div class="text-slate-400">Total kumulatif hari ini s/d jam ${String(curHourIdx).padStart(2, '0')}:00: <b class="text-emerald-400">${displayTodayKwh} kWh</b></div>`;
+          : `<div class="text-zinc-400 py-1">Total kumulatif hari ini s/d jam ${String(curHourIdx).padStart(2, '0')}:00: <b class="text-emerald-400">${displayTodayKwh} kWh</b></div>`;
 
       } else if (activePeriod === 'weekly') {
         document.getElementById('lblPeriodKwh').innerText = 'Total 7 Hari';
@@ -611,7 +740,7 @@
         document.getElementById('valPeriodSaved').innerText = s.week_ai_saved_kwh ?? 0;
         document.getElementById('valPeriodHours').innerText = `${s.week_work_hours ?? 0} jam`;
         document.getElementById('workHoursToday').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
-        document.getElementById('chartSubtitle').innerText = 'Konsumsi kWh Harian per Tanggal (00:00 - 00:00 • Live Hari Ini)';
+        document.getElementById('chartSubtitle').innerText = 'Konsumsi kWh Harian per Tanggal (00:00 - 00:00 &bull; Live Hari Ini)';
 
         const days = analyticsData.weekly || [];
         labels = days.map(d => d.label);
@@ -619,11 +748,11 @@
         secondValues = days.map(d => d.ai_saved_kwh);
 
         tableEl.innerHTML = [...days].reverse().map((d, idx) => `
-          <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
-            <span class="text-slate-300 font-medium">${d.label} (${d.date}) ${idx === 0 ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">LIVE</span>' : ''}</span>
-            <span class="text-amber-300 font-semibold">&#9201; ${d.work_duration_str}</span>
-            <span class="text-sky-400">Hemat: ${d.ai_saved_kwh} kWh</span>
-            <span class="text-emerald-400 font-bold">${d.kwh} kWh (Rp ${Math.round(d.kwh * rate).toLocaleString('id-ID')})</span>
+          <div class="flex justify-between items-center py-1.5 border-b border-zinc-800/70">
+            <span class="text-zinc-200 font-medium">${d.label} ${idx === 0 ? '<span class="text-[10px] ml-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold">LIVE</span>' : ''}</span>
+            <span class="text-zinc-400">${d.work_duration_str}</span>
+            <span class="text-sky-400">Hemat ${d.ai_saved_kwh} kWh</span>
+            <span class="text-emerald-400 font-semibold">${d.kwh} kWh (Rp ${Math.round(d.kwh * rate).toLocaleString('id-ID')})</span>
           </div>`).join('');
 
       } else {
@@ -643,13 +772,13 @@
         const nonZeroMonths = [...months].reverse().filter(m => m.kwh > 0 || m.ai_saved_kwh > 0 || m.work_hours > 0);
         tableEl.innerHTML = nonZeroMonths.length > 0
           ? nonZeroMonths.map((m, idx) => `
-              <div class="flex justify-between items-center py-1.5 border-b border-slate-800/60">
-                <span class="text-slate-200 font-bold">${m.label} ${idx === 0 ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">LIVE</span>' : ''}</span>
-                <span class="text-amber-300 font-semibold">&#9201; ${m.work_duration_str}</span>
-                <span class="text-sky-400">Hemat: ${m.ai_saved_kwh} kWh</span>
-                <span class="text-emerald-400 font-bold">${m.kwh} kWh (Rp ${Math.round(m.kwh * rate).toLocaleString('id-ID')})</span>
+              <div class="flex justify-between items-center py-1.5 border-b border-zinc-800/70">
+                <span class="text-zinc-200 font-semibold">${m.label} ${idx === 0 ? '<span class="text-[10px] ml-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold">LIVE</span>' : ''}</span>
+                <span class="text-zinc-400">${m.work_duration_str}</span>
+                <span class="text-sky-400">Hemat ${m.ai_saved_kwh} kWh</span>
+                <span class="text-emerald-400 font-semibold">${m.kwh} kWh (Rp ${Math.round(m.kwh * rate).toLocaleString('id-ID')})</span>
               </div>`).join('')
-          : '<div class="text-slate-500">Belum ada akumulasi bulanan.</div>';
+          : '<div class="text-zinc-500">Belum ada akumulasi bulanan.</div>';
       }
 
       const ctx = document.getElementById('energyChart').getContext('2d');
@@ -664,31 +793,27 @@
               label: mainLabel,
               data: mainValues,
               borderColor: '#10b981',
-              backgroundColor: 'rgba(16, 185, 129, 0.18)',
-              borderWidth: 2.5,
-              pointRadius: 3,
+              backgroundColor: 'rgba(16, 185, 129, 0.14)',
+              borderWidth: 2.2,
+              pointRadius: 2.5,
               pointHoverRadius: 5,
-              pointBackgroundColor: '#34d399',
+              pointBackgroundColor: '#10b981',
               fill: true,
-              tension: 0.3
+              tension: 0.28
             }
           ]
         : [
             {
               label: mainLabel,
               data: mainValues,
-              backgroundColor: 'rgba(16, 185, 129, 0.75)',
-              borderColor: '#10b981',
-              borderWidth: 1,
-              borderRadius: 6
+              backgroundColor: '#10b981',
+              borderRadius: 5
             },
             {
               label: secondLabel,
               data: secondValues,
-              backgroundColor: 'rgba(56, 189, 248, 0.65)',
-              borderColor: '#38bdf8',
-              borderWidth: 1,
-              borderRadius: 6
+              backgroundColor: '#0ea5e9',
+              borderRadius: 5
             }
           ];
 
@@ -716,7 +841,7 @@
           animation: false,
           plugins: {
             legend: {
-              labels: { color: '#cbd5e1', font: { size: 10 } }
+              labels: { color: '#a1a1aa', font: { family: 'Inter', size: 10, weight: '500' }, boxWidth: 10 }
             }
           },
           scales: {
@@ -724,22 +849,22 @@
               title: {
                 display: isDailyLine,
                 text: 'Jam (WIB)',
-                color: '#94a3b8',
-                font: { size: 10 }
+                color: '#71717a',
+                font: { family: 'Inter', size: 10 }
               },
-              ticks: { color: '#94a3b8', font: { size: 10 } },
-              grid: { color: 'rgba(148, 163, 184, 0.08)' }
+              ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 10 } },
+              grid: { color: 'rgba(255, 255, 255, 0.04)' }
             },
             y: {
               beginAtZero: true,
               title: {
                 display: true,
                 text: 'kWh',
-                color: '#94a3b8',
-                font: { size: 10 }
+                color: '#71717a',
+                font: { family: 'Inter', size: 10 }
               },
-              ticks: { color: '#94a3b8', font: { size: 10 } },
-              grid: { color: 'rgba(148, 163, 184, 0.12)' }
+              ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 10 } },
+              grid: { color: 'rgba(255, 255, 255, 0.06)' }
             }
           }
         }
@@ -761,7 +886,7 @@
         banner.classList.add('hidden');
       }
 
-      document.getElementById('subtitleStatus').innerText = 'Live • Update: ' + new Date().toLocaleTimeString('id-ID');
+      document.getElementById('subtitleStatus').innerText = 'Live • ' + new Date().toLocaleTimeString('id-ID');
 
       // Render Tuya Watt Plug
       const plug = data.plug || {};
@@ -778,13 +903,12 @@
         const rpHour = Math.round((watts / 1000.0) * rate);
         document.getElementById('costPerHour').innerText = `Biaya jalan saat ini: Rp ${rpHour.toLocaleString('id-ID')} / jam`;
         let compText = 'Standby / Mati';
-        if (watts > 550) compText = 'High Load (Turbo/Awal)';
+        if (watts > 550) compText = 'High Load (Turbo)';
         else if (watts > 220) compText = 'Inverter Stabil';
-        else if (watts > 25) compText = 'Low Watt / Eco SaveIn';
+        else if (watts > 25) compText = 'Low Watt / SaveIn';
         else if (watts > 5) compText = 'Fan Only';
         document.getElementById('compressorState').innerText = compText;
 
-        // Live-update current hour kWh on the Daily Line Chart
         if (analyticsData && Array.isArray(analyticsData.daily_hourly)) {
           const wibDate = new Date(Date.now() + 7 * 3600 * 1000);
           const curHourLabel = String(wibDate.getUTCHours()).padStart(2, '0') + ':00';
@@ -817,12 +941,13 @@
       }
 
       const btnPower = document.getElementById('btnPower');
+      const btnPowerText = document.getElementById('btnPowerText');
       if (ac.power) {
-        btnPower.innerText = 'POWER: ON';
-        btnPower.className = 'px-4 py-2 rounded-xl font-bold text-xs bg-emerald-600 text-white shadow-lg shadow-emerald-600/30';
+        if (btnPowerText) btnPowerText.innerText = 'ON';
+        btnPower.className = 'pressable px-4 py-2 rounded-full font-semibold text-xs bg-sky-500 text-white flex items-center gap-1.5 shadow-sm';
       } else {
-        btnPower.innerText = 'POWER: OFF';
-        btnPower.className = 'px-4 py-2 rounded-xl font-bold text-xs bg-slate-800 text-slate-400 border border-slate-700';
+        if (btnPowerText) btnPowerText.innerText = 'OFF';
+        btnPower.className = 'pressable px-4 py-2 rounded-full font-semibold text-xs bg-zinc-900 text-zinc-400 border border-zinc-800 flex items-center gap-1.5';
       }
 
       // Highlight Active Work Mode (1: Cool, 2: Dry, 3: Fan, 0: Auto)
@@ -831,9 +956,9 @@
         const mBtn = document.getElementById('modeBtn' + m);
         if (!mBtn) return;
         if (ac.work_mode_code === m) {
-          mBtn.className = 'py-2 rounded-xl bg-sky-600 text-white text-xs font-bold border border-sky-400 shadow';
+          mBtn.className = 'pressable py-2.5 rounded-xl bg-sky-500 text-white text-xs font-semibold border border-sky-400 flex items-center justify-center gap-1.5';
         } else {
-          mBtn.className = 'py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-700 transition';
+          mBtn.className = 'pressable py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800/80 text-zinc-300 text-xs font-medium border border-zinc-800 flex items-center justify-center gap-1.5';
         }
       });
 
@@ -845,9 +970,9 @@
         const gBtn = document.getElementById('fanGear' + g);
         if (!gBtn) return;
         if (g === activeGear) {
-          gBtn.className = 'py-1.5 rounded-lg bg-sky-600 text-white text-[11px] font-bold border border-sky-400';
+          gBtn.className = 'pressable py-2 rounded-lg bg-sky-500 text-white text-[11px] font-bold border border-sky-400';
         } else {
-          gBtn.className = 'py-1.5 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-bold border border-slate-700';
+          gBtn.className = 'pressable py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800/80 text-zinc-300 text-[11px] font-semibold border border-zinc-800';
         }
       }
 
@@ -876,9 +1001,9 @@
         const gb = document.getElementById('genBtn' + g);
         if (!gb) return;
         if ((ac.generator_mode || 0) === g) {
-          gb.className = 'py-1.5 rounded-lg bg-sky-600 text-white text-[11px] font-bold border border-sky-400';
+          gb.className = 'pressable py-2 rounded-lg bg-sky-500 text-white text-[11px] font-bold border border-sky-400';
         } else {
-          gb.className = 'py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700';
+          gb.className = 'pressable py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800/80 text-zinc-300 text-[11px] font-semibold border border-zinc-800';
         }
       });
 
@@ -891,20 +1016,20 @@
 
       const filterEl = document.getElementById('diagFilterStatus');
       if (ac.filter_block_status && ac.filter_block_status > 0) {
-        filterEl.innerText = 'Perlu Cuci!';
-        filterEl.className = 'text-xs font-extrabold text-amber-400 mt-0.5';
+        filterEl.innerText = 'Perlu Cuci';
+        filterEl.className = 'text-xs font-bold text-amber-400 mt-0.5';
       } else {
         filterEl.innerText = 'Bersih';
-        filterEl.className = 'text-xs font-extrabold text-emerald-400 mt-0.5';
+        filterEl.className = 'text-xs font-bold text-emerald-400 mt-0.5';
       }
 
       const errBadge = document.getElementById('diagErrorBadge');
       if (Array.isArray(ac.error_code) && ac.error_code.length > 0) {
         errBadge.innerText = 'Error: ' + ac.error_code.join(', ');
-        errBadge.className = 'text-[11px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-semibold';
+        errBadge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 font-semibold';
       } else {
-        errBadge.innerText = 'Normal (No Error)';
-        errBadge.className = 'text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold';
+        errBadge.innerText = 'Normal';
+        errBadge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 font-medium';
       }
 
       document.getElementById('diagAiWorkTime').innerText = data.ac_energy?.today_ai_work_str || '--';
@@ -915,10 +1040,10 @@
       if (data.history && data.history.length > 0) {
         const listEl = document.getElementById('historyList');
         listEl.innerHTML = data.history.map(h =>
-          `<div class="flex justify-between py-1 border-b border-slate-800/70">
-            <span class="text-slate-400">${h.time}</span>
-            <span>Suhu: <b>${h.room_temp ?? '--'}&deg;C</b> (Set ${h.target_temp ?? '--'}&deg;C)</span>
-            <span class="text-emerald-400 font-bold">${h.watts ?? '--'} W</span>
+          `<div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+            <span class="text-zinc-400">${h.time}</span>
+            <span class="text-zinc-300">Suhu <b class="text-zinc-100">${h.room_temp ?? '--'}&deg;C</b> (Target ${h.target_temp ?? '--'}&deg;C)</span>
+            <span class="text-emerald-400 font-semibold">${h.watts ?? '--'} W</span>
           </div>`
         ).join('');
       }
@@ -929,13 +1054,13 @@
       const lbl = document.getElementById(labelId);
       if (!btn || !lbl) return;
       if (active) {
-        btn.className = 'p-2.5 rounded-xl bg-sky-500/20 border border-sky-400/50 text-left transition';
+        btn.className = 'pressable p-3 rounded-xl bg-sky-500/15 border border-sky-500/45 text-left';
         lbl.innerText = onText;
-        lbl.className = 'text-[10px] text-sky-300 font-semibold mt-0.5';
+        lbl.className = 'text-[11px] text-sky-400 font-semibold mt-1';
       } else {
-        btn.className = 'p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-left transition';
+        btn.className = 'pressable p-3 rounded-xl bg-zinc-900 hover:bg-zinc-800/70 border border-zinc-800 text-left';
         lbl.innerText = offText;
-        lbl.className = 'text-[10px] text-slate-400 mt-0.5';
+        lbl.className = 'text-[11px] text-zinc-400 mt-1';
       }
     }
 
