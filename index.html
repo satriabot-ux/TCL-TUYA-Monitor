@@ -17,52 +17,178 @@
       --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
     }
     body {
-      background: linear-gradient(180deg, #eef4ff 0%, #f8f5ff 48%, #f2fbf7 100%);
-      background-attachment: fixed;
+      background: #dceeff;
       color: #1e293b;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
     }
     .num {
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.02em;
     }
+    /* 40% Transparency Glass UI Cards */
     .surface-card {
-      background-color: #ffffff;
-      border: 1px solid #e6e9f4;
+      background-color: rgba(255, 255, 255, 0.40);
+      backdrop-filter: blur(16px) saturate(145%);
+      -webkit-backdrop-filter: blur(16px) saturate(145%);
+      border: 1px solid rgba(255, 255, 255, 0.58);
       border-radius: 18px;
-      box-shadow: 0 8px 24px -10px rgba(71, 85, 130, 0.14);
+      box-shadow: 0 8px 28px -8px rgba(30, 58, 108, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+    .surface-modal {
+      background-color: rgba(255, 255, 255, 0.80);
+      backdrop-filter: blur(22px) saturate(150%);
+      -webkit-backdrop-filter: blur(22px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 20px;
+      box-shadow: 0 20px 44px -12px rgba(30, 58, 108, 0.22);
     }
     .surface-inset {
-      background-color: #f6f8fc;
-      border: 1px solid #e8ecf5;
+      background-color: rgba(255, 255, 255, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.55);
       border-radius: 12px;
     }
     .surface-mint {
-      background-color: #effcf6;
-      border: 1px solid #d1f4e3;
+      background-color: rgba(236, 253, 245, 0.52);
+      border: 1px solid rgba(167, 243, 208, 0.65);
       border-radius: 12px;
     }
     .surface-sky {
-      background-color: #f0f8ff;
-      border: 1px solid #d6ecff;
+      background-color: rgba(240, 249, 255, 0.52);
+      border: 1px solid rgba(186, 230, 253, 0.68);
       border-radius: 12px;
     }
     .surface-peach {
-      background-color: #fff8f1;
-      border: 1px solid #fde4cd;
+      background-color: rgba(255, 247, 237, 0.52);
+      border: 1px solid rgba(254, 215, 170, 0.68);
       border-radius: 12px;
     }
     .surface-lavender {
-      background-color: #f6f4ff;
-      border: 1px solid #e7e1ff;
+      background-color: rgba(245, 243, 255, 0.52);
+      border: 1px solid rgba(221, 214, 254, 0.68);
       border-radius: 12px;
     }
     .surface-header {
-      background-color: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid #e6e9f4;
+      background-color: rgba(255, 255, 255, 0.42);
+      backdrop-filter: blur(16px) saturate(145%);
+      -webkit-backdrop-filter: blur(16px) saturate(145%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+    }
+    /* Animated Live Weather Background (GPU-accelerated, ultra-lightweight) */
+    #weatherBg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+      transition: background 900ms ease;
+      background: linear-gradient(180deg, #cbe5ff 0%, #e6e3ff 52%, #d8f5ea 100%);
+    }
+    #weatherBg.wx-sun {
+      background: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 45%, #fef3c7 100%);
+    }
+    #weatherBg.wx-sun-night {
+      background: linear-gradient(180deg, #c7d2fe 0%, #ddd6fe 50%, #e0f2fe 100%);
+    }
+    #weatherBg.wx-cloud-sun {
+      background: linear-gradient(180deg, #c7e2ff 0%, #e8e6ff 50%, #fef4e6 100%);
+    }
+    #weatherBg.wx-cloud {
+      background: linear-gradient(180deg, #cbdcf2 0%, #e2e8f5 52%, #e9e7f7 100%);
+    }
+    #weatherBg.wx-rain {
+      background: linear-gradient(180deg, #b8d4f0 0%, #cfe0f2 48%, #d6eceb 100%);
+    }
+    #weatherBg.wx-storm {
+      background: linear-gradient(180deg, #b4c3e2 0%, #cbc7e8 50%, #c6daf0 100%);
+    }
+    .wx-sun-orb {
+      position: absolute;
+      top: -42px;
+      right: -32px;
+      width: 210px;
+      height: 210px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(253, 224, 71, 0.72) 0%, rgba(251, 191, 36, 0.28) 48%, rgba(255, 255, 255, 0) 72%);
+      animation: pulseSun 7s ease-in-out infinite;
+      will-change: transform, opacity;
+    }
+    .wx-moon-orb {
+      position: absolute;
+      top: 28px;
+      right: 26px;
+      width: 84px;
+      height: 84px;
+      border-radius: 9999px;
+      background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.92), rgba(199, 210, 254, 0.45) 62%, transparent 74%);
+      box-shadow: 0 0 42px rgba(129, 140, 248, 0.35);
+      animation: pulseSun 8s ease-in-out infinite;
+    }
+    .wx-cloud {
+      position: absolute;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.56);
+      filter: blur(6px);
+      will-change: transform;
+      animation: driftCloud linear infinite;
+    }
+    .wx-cloud::before, .wx-cloud::after {
+      content: '';
+      position: absolute;
+      background: inherit;
+      border-radius: 9999px;
+    }
+    .wx-cloud::before { width: 58%; height: 145%; top: -48%; left: 16%; }
+    .wx-cloud::after { width: 44%; height: 120%; top: -32%; right: 16%; }
+    .wx-drop {
+      position: absolute;
+      top: -40px;
+      width: 2px;
+      height: 22px;
+      border-radius: 9999px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(56, 149, 232, 0.55) 100%);
+      will-change: transform;
+      animation: rainFall linear infinite;
+    }
+    .wx-star {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.85);
+      animation: twinkleStar 3.4s ease-in-out infinite;
+    }
+    .wx-flash {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.55);
+      opacity: 0;
+      animation: lightningFlash 6.5s infinite;
+    }
+    @keyframes pulseSun {
+      0%, 100% { transform: scale(1); opacity: 0.92; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+    @keyframes driftCloud {
+      0% { transform: translateX(-35vw); }
+      100% { transform: translateX(120vw); }
+    }
+    @keyframes rainFall {
+      0% { transform: translate3d(0, -40px, 0) rotate(12deg); opacity: 0; }
+      15% { opacity: 0.85; }
+      90% { opacity: 0.75; }
+      100% { transform: translate3d(-45px, 108vh, 0) rotate(12deg); opacity: 0; }
+    }
+    @keyframes twinkleStar {
+      0%, 100% { opacity: 0.25; transform: scale(0.85); }
+      50% { opacity: 0.95; transform: scale(1.25); }
+    }
+    @keyframes lightningFlash {
+      0%, 91%, 94%, 96%, 100% { opacity: 0; }
+      92.5% { opacity: 0.55; }
+      95% { opacity: 0.35; }
     }
     .pressable {
       transition: transform 140ms var(--ease-out-strong), background-color 140ms var(--ease-out-strong), border-color 140ms var(--ease-out-strong), color 140ms var(--ease-out-strong);
@@ -91,8 +217,9 @@
       color: #1e293b;
     }
     @media (prefers-reduced-motion: reduce) {
-      .pressable, .pressable:active {
+      .pressable, .pressable:active, .wx-cloud, .wx-drop, .wx-sun-orb, .wx-moon-orb, .wx-star, .wx-flash {
         transition: none !important;
+        animation: none !important;
         transform: none !important;
       }
     }
@@ -102,9 +229,12 @@
   </style>
 </head>
 <body class="min-h-screen pb-16">
+  <!-- Dynamic Live Animated Weather Background -->
+  <div id="weatherBg" class="wx-cloud-sun" aria-hidden="true"></div>
+
   <!-- Fullscreen Password Lock Overlay (Always Required on Open/Refresh) -->
-  <div id="loginOverlay" class="fixed inset-0 z-50 bg-gradient-to-b from-[#eef4ff] via-[#f8f5ff] to-[#f2fbf7] flex items-center justify-center p-4">
-    <div class="surface-card max-w-sm w-full p-6 text-center space-y-5">
+  <div id="loginOverlay" class="fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="surface-modal max-w-sm w-full p-6 text-center space-y-5">
       <div class="w-12 h-12 rounded-2xl bg-sky-100 border border-sky-200 flex items-center justify-center mx-auto text-sky-600">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -169,7 +299,7 @@
     <div id="alertBanner" class="hidden rounded-xl p-3 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium"></div>
 
     <!-- Info Cuaca Hari Ini Card -->
-    <section class="surface-card p-4 bg-gradient-to-r from-[#f0f7ff] via-[#ffffff] to-[#fff8f1]">
+    <section class="surface-card p-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div id="weatherIconBox" class="w-11 h-11 rounded-2xl bg-amber-100/80 border border-amber-200/80 flex items-center justify-center text-amber-500 shrink-0">
@@ -539,8 +669,8 @@
   </main>
 
   <!-- Swing Mode Picker Modal (Opens only when Swing button is clicked) -->
-  <div id="swingModal" onclick="if(event.target===this) toggleModal('swingModal')" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-    <div class="surface-card max-w-sm w-full p-5 space-y-4">
+  <div id="swingModal" onclick="if(event.target===this) toggleModal('swingModal')" class="fixed inset-0 z-50 hidden bg-slate-900/35 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+    <div class="surface-modal max-w-sm w-full p-5 space-y-4">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-sm font-bold text-slate-800">Pilih Mode Swing AC</h2>
@@ -652,8 +782,8 @@
   </div>
 
   <!-- Change Password Modal -->
-  <div id="passwordModal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="surface-card max-w-sm w-full p-5 space-y-4">
+  <div id="passwordModal" class="fixed inset-0 z-50 hidden bg-slate-900/35 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="surface-modal max-w-sm w-full p-5 space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="text-sm font-bold text-slate-800">Ganti Password Masuk</h2>
         <button onclick="toggleModal('passwordModal')" class="pressable px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-800 text-xs">Tutup</button>
@@ -680,8 +810,8 @@
   </div>
 
   <!-- Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="surface-card max-w-md w-full p-5 max-h-[90vh] overflow-y-auto space-y-4">
+  <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-slate-900/35 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="surface-modal max-w-md w-full p-5 max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="text-sm font-bold text-slate-800">Konfigurasi Perangkat &amp; Cuaca</h2>
         <button onclick="toggleModal('settingsModal')" class="pressable px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-800 text-xs">Tutup</button>
@@ -835,12 +965,77 @@
       el.classList.toggle('hidden');
     }
 
+    let activeWeatherBgMode = '';
+
+    function applyWeatherBackground(icon) {
+      const bg = document.getElementById('weatherBg');
+      if (!bg) return;
+      const wibHour = new Date(Date.now() + 7 * 3600 * 1000).getUTCHours();
+      const isNight = (wibHour >= 18 || wibHour < 6);
+      const modeKey = `${icon || 'cloud-sun'}_${isNight ? 'night' : 'day'}`;
+      if (activeWeatherBgMode === modeKey) return;
+      activeWeatherBgMode = modeKey;
+
+      bg.className = '';
+      let html = '';
+
+      if (icon === 'rain' || icon === 'storm') {
+        bg.classList.add(icon === 'storm' ? 'wx-storm' : 'wx-rain');
+        html += `
+          <div class="wx-cloud" style="width:220px;height:62px;top:6%;left:0;animation-duration:32s;animation-delay:-8s;background:rgba(255,255,255,0.48);"></div>
+          <div class="wx-cloud" style="width:270px;height:74px;top:16%;left:0;animation-duration:44s;animation-delay:-22s;background:rgba(241,245,249,0.52);"></div>
+          <div class="wx-cloud" style="width:190px;height:54px;top:28%;left:0;animation-duration:36s;animation-delay:-14s;background:rgba(255,255,255,0.42);"></div>
+        `;
+        const dropCount = icon === 'storm' ? 32 : 24;
+        for (let i = 0; i < dropCount; i++) {
+          const leftPct = (i * (100 / dropCount) + (i % 3) * 1.4).toFixed(1);
+          const dur = (0.75 + (i % 5) * 0.14).toFixed(2);
+          const delay = -((i * 0.27) % 2.1).toFixed(2);
+          html += `<div class="wx-drop" style="left:${leftPct}%;animation-duration:${dur}s;animation-delay:${delay}s;"></div>`;
+        }
+        if (icon === 'storm') {
+          html += `<div class="wx-flash"></div>`;
+        }
+      } else if (icon === 'cloud' || icon === 'cloud-sun') {
+        bg.classList.add(icon === 'cloud' ? 'wx-cloud' : 'wx-cloud-sun');
+        if (icon === 'cloud-sun') {
+          html += isNight ? `<div class="wx-moon-orb"></div>` : `<div class="wx-sun-orb"></div>`;
+        }
+        html += `
+          <div class="wx-cloud" style="width:210px;height:60px;top:8%;left:0;animation-duration:38s;animation-delay:-10s;"></div>
+          <div class="wx-cloud" style="width:260px;height:72px;top:24%;left:0;animation-duration:52s;animation-delay:-28s;"></div>
+          <div class="wx-cloud" style="width:180px;height:52px;top:48%;left:0;animation-duration:42s;animation-delay:-18s;"></div>
+          <div class="wx-cloud" style="width:230px;height:64px;top:72%;left:0;animation-duration:58s;animation-delay:-35s;"></div>
+        `;
+      } else {
+        bg.classList.add(isNight ? 'wx-sun-night' : 'wx-sun');
+        if (isNight) {
+          html += `<div class="wx-moon-orb"></div>`;
+          for (let s = 0; s < 16; s++) {
+            const lx = ((s * 17 + 7) % 92) + 4;
+            const ty = ((s * 23 + 9) % 72) + 4;
+            const dl = (s * 0.35).toFixed(2);
+            html += `<div class="wx-star" style="left:${lx}%;top:${ty}%;animation-delay:${dl}s;"></div>`;
+          }
+        } else {
+          html += `<div class="wx-sun-orb"></div>`;
+          html += `
+            <div class="wx-cloud" style="width:190px;height:52px;top:16%;left:0;animation-duration:48s;animation-delay:-14s;opacity:0.55;"></div>
+            <div class="wx-cloud" style="width:230px;height:60px;top:62%;left:0;animation-duration:62s;animation-delay:-32s;opacity:0.45;"></div>
+          `;
+        }
+      }
+
+      bg.innerHTML = html;
+    }
+
     async function refreshWeather() {
       if (!appToken) return;
       try {
         const res = await fetch('/api/weather', { headers: authHeaders() });
         if (!res.ok) return;
         const w = await res.json();
+        applyWeatherBackground(w.icon || 'cloud-sun');
         document.getElementById('weatherCity').innerText = w.city || 'Sekitarnya';
         document.getElementById('weatherTemp').innerText = w.temp !== undefined && w.temp !== null ? `${Math.round(w.temp)}°C` : '--°C';
         document.getElementById('weatherDesc').innerText = w.desc || '--';
@@ -1461,6 +1656,7 @@
     }
 
     // Always start locked until password is entered
+    applyWeatherBackground('cloud-sun');
     showLoginOverlay();
     scheduleHourlyAndMidnightChartRefresh();
     setInterval(async () => {
