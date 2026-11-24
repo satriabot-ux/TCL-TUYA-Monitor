@@ -11,6 +11,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import hashlib
+import requests
 
 from energy_db import EnergyDatabase
 from tcl_client import TCLHomeClient
@@ -31,6 +32,9 @@ last_ac_poll_ts: float = 0.0
 last_sample_ts: float = 0.0
 last_tcl_energy_sync_ts: float = 0.0
 cached_tcl_energy: Dict[str, Any] = {}
+cached_weather: Dict[str, Any] = {}
+last_weather_ts: float = 0.0
+runtime_app_password: str | None = None
 
 
 def load_config() -> Dict[str, Any]:
@@ -48,15 +52,22 @@ def load_config() -> Dict[str, Any]:
         "tuya_local_version": os.environ.get("TUYA_LOCAL_VERSION", "3.4"),
         "pln_rate": float(os.environ.get("PLN_RATE", "1444.70")),
         "app_password": os.environ.get("APP_PASSWORD", "azzam2021"),
+        "weather_city": os.environ.get("WEATHER_CITY", "Bekasi / Sekitarnya"),
+        "weather_lat": float(os.environ.get("WEATHER_LAT", "-6.25")),
+        "weather_lon": float(os.environ.get("WEATHER_LON", "107.12")),
     }
-    if CONFIG_PATH.exists():
-        try:
-            file_cfg = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-            for k, v in file_cfg.items():
-                if v not in ("", None):
-                    cfg[k] = v
-        except Exception:
-            pass
+    for candidate in (CONFIG_PATH, Path("/tmp/config.json")):
+        if candidate.exists():
+            try:
+                file_cfg = json.loads(candidate.read_text(encoding="utf-8"))
+                for k, v in file_cfg.items():
+                    if v not in ("", None):
+                        cfg[k] = v
+                break
+            except Exception:
+                pass
+    if runtime_app_password:
+        cfg["app_password"] = runtime_app_password
     return cfg
 
 
@@ -135,14 +146,42 @@ class ConfigUpdateModel(BaseModel):
     tuya_local_key: str = ""
     tuya_local_version: str = "3.4"
     pln_rate: float = 1444.70
+    weather_city: str = "Bekasi / Sekitarnya"
+    weather_lat: float = -6.25
+    weather_lon: float = 107.12
 
 
 class LoginModel(BaseModel):
     password: str
 
 
+class ChangePasswordModel(BaseModel):
+    old_password: str
+    new_password: str
+
+
 class AcControlModel(BaseModel):
     desired: Dict[str, Any]
+
+
+def _wmo_weather_info(code: int) -> Dict[str, str]:
+    if code == 0:
+        return {"desc": "Cerah", "icon": "sun"}
+    if code in (1, 2):
+        return {"desc": "Cerah Berawan", "icon": "cloud-sun"}
+    if code == 3:
+        return {"desc": "Berawan", "icon": "cloud"}
+    if code in (45, 48):
+        return {"desc": "Berkabut", "icon": "cloud"}
+    if code in (51, 53, 55, 56, 57):
+        return {"desc": "Gerimis", "icon": "rain"}
+    if code in (61, 63, 80, 81):
+        return {"desc": "Hujan Ringan", "icon": "rain"}
+    if code in (65, 66, 67, 82):
+        return {"desc": "Hujan Lebat", "icon": "rain"}
+    if code in (95, 96, 99):
+        return {"desc": "Badai Petir", "icon": "storm"}
+    return {"desc": "Berawan", "icon": "cloud-sun"}
 
 
 @app.post("/api/auth/login")
@@ -151,6 +190,75 @@ def login_app(body: LoginModel):
     if body.password.strip() == expected_pw:
         return {"status": "ok", "token": get_expected_token()}
     raise HTTPException(status_code=401, detail="Password salah!")
+
+
+@app.post("/api/auth/change-password")
+def change_password(body: ChangePasswordModel, x_app_token: str | None = Header(default=None)):
+    global runtime_app_password
+    verify_auth(x_app_token)
+    cfg = load_config()
+    expected_pw = str(cfg.get("app_password") or "azzam2021").strip()
+    if body.old_password.strip() != expected_pw:
+        raise HTTPException(status_code=400, detail="Password lama tidak sesuai!")
+    new_pw = body.new_password.strip()
+    if len(new_pw) < 4:
+        raise HTTPException(status_code=400, detail="Password baru minimal 4 karakter!")
+    runtime_app_password = new_pw
+    cfg["app_password"] = new_pw
+    save_config_file(cfg)
+    return {
+        "status": "ok",
+        "token": get_expected_token(),
+        "is_vercel": bool(os.environ.get("VERCEL")),
+    }
+
+
+@app.get("/api/weather")
+def get_today_weather(x_app_token: str | None = Header(default=None)):
+    global cached_weather, last_weather_ts
+    verify_auth(x_app_token)
+    cfg = load_config()
+    lat = float(cfg.get("weather_lat", -6.25))
+    lon = float(cfg.get("weather_lon", 107.12))
+    city = str(cfg.get("weather_city") or "Bekasi / Sekitarnya")
+    now_ts = time.time()
+
+    if cached_weather and (now_ts - last_weather_ts) < 900 and cached_weather.get("city") == city:
+        return cached_weather
+
+    try:
+        url = (
+            f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
+            "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m"
+            "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max"
+            "&timezone=Asia%2FJakarta&forecast_days=1"
+        )
+        r = requests.get(url, timeout=8)
+        r.raise_for_status()
+        raw = r.json()
+        cur = raw.get("current", {})
+        daily = raw.get("daily", {})
+        wcode = int(cur.get("weather_code", 1))
+        winfo = _wmo_weather_info(wcode)
+        cached_weather = {
+            "city": city,
+            "temp": cur.get("temperature_2m"),
+            "feels_like": cur.get("apparent_temperature"),
+            "humidity": cur.get("relative_humidity_2m"),
+            "wind_kmh": cur.get("wind_speed_10m"),
+            "desc": winfo["desc"],
+            "icon": winfo["icon"],
+            "temp_min": (daily.get("temperature_2m_min") or [None])[0],
+            "temp_max": (daily.get("temperature_2m_max") or [None])[0],
+            "rain_chance": (daily.get("precipitation_probability_max") or [0])[0],
+            "updated_at": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=7))).strftime("%H:%M WIB"),
+        }
+        last_weather_ts = now_ts
+        return cached_weather
+    except Exception as e:
+        if cached_weather:
+            return cached_weather
+        return {"city": city, "desc": "Tidak tersedia", "icon": "cloud", "error": str(e)}
 
 
 @app.get("/")
@@ -176,6 +284,7 @@ def get_current_config(x_app_token: str | None = Header(default=None)):
 
 @app.post("/api/config")
 def update_config(body: ConfigUpdateModel, x_app_token: str | None = Header(default=None)):
+    global last_weather_ts
     verify_auth(x_app_token)
     old = load_config()
     new_cfg = body.model_dump()
@@ -185,6 +294,7 @@ def update_config(body: ConfigUpdateModel, x_app_token: str | None = Header(defa
         new_cfg["tuya_api_secret"] = old.get("tuya_api_secret", "")
     new_cfg["app_password"] = old.get("app_password", "azzam2021")
     save_config_file(new_cfg)
+    last_weather_ts = 0.0
     init_clients()
     return {"status": "ok"}
 

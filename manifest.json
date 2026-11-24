@@ -3,7 +3,7 @@
   "short_name": "SaveIn Watt",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#eef4ff",
+  "theme_color": "#eef4ff",
   "orientation": "portrait"
 }

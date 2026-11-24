@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#09090b" />
+  <meta name="theme-color" content="#eef4ff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,8 +17,9 @@
       --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
     }
     body {
-      background-color: #09090b;
-      color: #fafafa;
+      background: linear-gradient(180deg, #eef4ff 0%, #f8f5ff 48%, #f2fbf7 100%);
+      background-attachment: fixed;
+      color: #1e293b;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -28,20 +29,40 @@
       letter-spacing: -0.02em;
     }
     .surface-card {
-      background-color: #121215;
-      border: 1px solid #232329;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.55);
+      background-color: #ffffff;
+      border: 1px solid #e6e9f4;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px -10px rgba(71, 85, 130, 0.14);
     }
     .surface-inset {
-      background-color: #09090b;
-      border: 1px solid #1f1f25;
+      background-color: #f6f8fc;
+      border: 1px solid #e8ecf5;
+      border-radius: 12px;
+    }
+    .surface-mint {
+      background-color: #effcf6;
+      border: 1px solid #d1f4e3;
+      border-radius: 12px;
+    }
+    .surface-sky {
+      background-color: #f0f8ff;
+      border: 1px solid #d6ecff;
+      border-radius: 12px;
+    }
+    .surface-peach {
+      background-color: #fff8f1;
+      border: 1px solid #fde4cd;
+      border-radius: 12px;
+    }
+    .surface-lavender {
+      background-color: #f6f4ff;
+      border: 1px solid #e7e1ff;
       border-radius: 12px;
     }
     .surface-header {
-      background-color: rgba(9, 9, 11, 0.88);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid #1f1f25;
+      background-color: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #e6e9f4;
     }
     .pressable {
       transition: transform 140ms var(--ease-out-strong), background-color 140ms var(--ease-out-strong), border-color 140ms var(--ease-out-strong), color 140ms var(--ease-out-strong);
@@ -52,22 +73,22 @@
       transform: scale(0.97);
     }
     .pressable:focus-visible {
-      outline: 2px solid #0ea5e9;
+      outline: 2px solid #38bdf8;
       outline-offset: 2px;
     }
     .tab-active {
-      background-color: #0ea5e9;
+      background-color: #0284c7;
       color: #ffffff;
       font-weight: 600;
-      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.22);
     }
     .tab-inactive {
       background-color: transparent;
-      color: #a1a1aa;
+      color: #64748b;
       font-weight: 500;
     }
     .tab-inactive:hover {
-      color: #e4e4e7;
+      color: #1e293b;
     }
     @media (prefers-reduced-motion: reduce) {
       .pressable, .pressable:active {
@@ -75,31 +96,30 @@
         transform: none !important;
       }
     }
-    /* Custom subtle scrollbar */
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
   </style>
 </head>
 <body class="min-h-screen pb-16">
-  <!-- Fullscreen Password Lock Overlay -->
-  <div id="loginOverlay" class="fixed inset-0 z-50 bg-zinc-950/95 backdrop-blur-md flex items-center justify-center p-4">
+  <!-- Fullscreen Password Lock Overlay (Always Required on Open/Refresh) -->
+  <div id="loginOverlay" class="fixed inset-0 z-50 bg-gradient-to-b from-[#eef4ff] via-[#f8f5ff] to-[#f2fbf7] flex items-center justify-center p-4">
     <div class="surface-card max-w-sm w-full p-6 text-center space-y-5">
-      <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/25 flex items-center justify-center mx-auto text-sky-400">
-        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <div class="w-12 h-12 rounded-2xl bg-sky-100 border border-sky-200 flex items-center justify-center mx-auto text-sky-600">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
       </div>
       <div>
-        <h2 class="text-base font-bold text-zinc-100 tracking-tight">TCL SaveIn &bull; Smart Monitor</h2>
-        <p class="text-xs text-zinc-400 mt-1">Masukkan password akses untuk membuka kontrol AC &amp; telemetri daya</p>
+        <h2 class="text-base font-bold text-slate-800 tracking-tight">TCL SaveIn &bull; Smart Monitor</h2>
+        <p class="text-xs text-slate-500 mt-1">Masukkan password akses setiap kali membuka dashboard</p>
       </div>
       <form onsubmit="submitLogin(event)" class="space-y-3">
-        <input id="loginPasswordInput" type="password" placeholder="Masukkan Password..." autocomplete="current-password"
-          class="w-full px-4 py-2.5 rounded-lg bg-zinc-950 border border-zinc-800 text-sm text-center text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-sky-500" />
-        <div id="loginErrorMsg" class="hidden text-xs text-rose-400 font-medium">Password salah, silakan coba lagi.</div>
-        <button type="submit" class="pressable w-full py-2.5 rounded-full bg-sky-500 hover:bg-sky-400 font-semibold text-xs text-white">
+        <input id="loginPasswordInput" type="password" placeholder="Masukkan Password..." autocomplete="current-password" autofocus
+          class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-center text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-400 focus:bg-white" />
+        <div id="loginErrorMsg" class="hidden text-xs text-rose-500 font-medium">Password salah, silakan coba lagi.</div>
+        <button type="submit" class="pressable w-full py-2.5 rounded-full bg-sky-600 hover:bg-sky-500 font-semibold text-xs text-white shadow-sm">
           Buka Dashboard
         </button>
       </form>
@@ -114,23 +134,29 @@
         <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" id="statusDot"></span>
       </span>
       <div>
-        <h1 class="text-sm font-bold tracking-tight text-zinc-100">TCL SaveIn &bull; Energy Monitor</h1>
-        <p class="text-[11px] text-zinc-400 num" id="subtitleStatus">Menghubungkan ke perangkat...</p>
+        <h1 class="text-sm font-bold tracking-tight text-slate-800">TCL SaveIn &bull; Smart Monitor</h1>
+        <p class="text-[11px] text-slate-500 num" id="subtitleStatus">Menghubungkan ke perangkat...</p>
       </div>
     </div>
     <div class="flex items-center gap-1.5">
-      <button onclick="refreshAll()" aria-label="Segarkan Data" class="pressable px-3 py-1.5 rounded-full bg-zinc-900 hover:bg-zinc-800 text-xs font-medium text-zinc-200 border border-zinc-800 flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button onclick="refreshAll()" title="Segarkan Data" aria-label="Segarkan Data" class="pressable p-2 rounded-full bg-slate-100 hover:bg-slate-200/80 text-slate-600 border border-slate-200/80">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
           <path d="M21 3v5h-5"></path>
         </svg>
-        <span>Segarkan</span>
       </button>
-      <button onclick="toggleModal('settingsModal')" aria-label="Konfigurasi" class="pressable px-3 py-1.5 rounded-full bg-sky-500 hover:bg-sky-400 text-xs font-semibold text-white">
+      <button onclick="toggleModal('passwordModal')" title="Ganti Password" aria-label="Ganti Password" class="pressable p-2 rounded-full bg-violet-50 hover:bg-violet-100 text-violet-600 border border-violet-200">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7.5" cy="15.5" r="5.5"></circle>
+          <path d="m21 2-9.6 9.6"></path>
+          <path d="m15.5 7.5 3 3L22 7l-3-3"></path>
+        </svg>
+      </button>
+      <button onclick="toggleModal('settingsModal')" aria-label="Konfigurasi" class="pressable px-3 py-1.5 rounded-full bg-sky-600 hover:bg-sky-500 text-xs font-semibold text-white">
         Konfigurasi
       </button>
-      <button onclick="logoutApp()" title="Kunci Aplikasi" aria-label="Kunci Aplikasi" class="pressable p-1.5 rounded-full bg-zinc-900 hover:bg-rose-950/60 text-zinc-400 hover:text-rose-300 border border-zinc-800">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <button onclick="logoutApp()" title="Kunci Aplikasi" aria-label="Kunci Aplikasi" class="pressable p-2 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-500 border border-rose-200">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
@@ -140,50 +166,83 @@
 
   <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
     <!-- Status Banner -->
-    <div id="alertBanner" class="hidden rounded-xl p-3 bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs"></div>
+    <div id="alertBanner" class="hidden rounded-xl p-3 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium"></div>
+
+    <!-- Info Cuaca Hari Ini Card -->
+    <section class="surface-card p-4 bg-gradient-to-r from-[#f0f7ff] via-[#ffffff] to-[#fff8f1]">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="weatherIconBox" class="w-11 h-11 rounded-2xl bg-amber-100/80 border border-amber-200/80 flex items-center justify-center text-amber-500 shrink-0">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2"></path><path d="M12 20v2"></path>
+              <path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path>
+              <path d="M2 12h2"></path><path d="M20 12h2"></path>
+              <path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] uppercase tracking-wider text-sky-600 font-semibold">Cuaca Hari Ini</span>
+              <span class="text-[10px] text-slate-400">&bull;</span>
+              <span id="weatherCity" class="text-[11px] font-medium text-slate-600">Memuat lokasi...</span>
+            </div>
+            <div class="flex items-baseline gap-2 mt-0.5">
+              <span id="weatherTemp" class="text-2xl font-extrabold text-slate-800 num">--&deg;C</span>
+              <span id="weatherDesc" class="text-xs font-semibold text-amber-600">--</span>
+            </div>
+          </div>
+        </div>
+        <div class="text-right space-y-0.5 text-[11px] text-slate-500 num">
+          <div>Terasa <b id="weatherFeels" class="text-slate-700">--&deg;C</b></div>
+          <div>Lembap <b id="weatherHum" class="text-sky-600">--%</b> &bull; Hujan <b id="weatherRain" class="text-indigo-600">--%</b></div>
+          <div>Min/Max <b id="weatherMinMax" class="text-slate-700">--/--&deg;C</b></div>
+        </div>
+      </div>
+    </section>
 
     <!-- Real-time Watt Meter Card (Tuya Smart Plug) -->
     <section class="surface-card p-5">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
           </svg>
-          <span class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Tuya Smart Plug &bull; Daya Aktual</span>
+          <span class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Tuya Smart Plug &bull; Daya Aktual</span>
         </div>
-        <span id="plugSourceBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 font-medium">Real-Time</span>
+        <span id="plugSourceBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">Real-Time</span>
       </div>
 
       <div class="flex items-baseline justify-between">
         <div>
           <div class="flex items-baseline gap-1.5">
-            <span id="wattValue" class="text-5xl font-extrabold text-zinc-50 num">--</span>
-            <span class="text-base font-semibold text-emerald-400">W</span>
+            <span id="wattValue" class="text-5xl font-extrabold text-emerald-600 num">--</span>
+            <span class="text-base font-bold text-emerald-500">Watt</span>
           </div>
-          <p id="costPerHour" class="text-xs text-zinc-400 mt-1 num">Estimasi biaya aktif: Rp -- / jam</p>
+          <p id="costPerHour" class="text-xs text-slate-500 mt-1 num">Estimasi biaya aktif: Rp -- / jam</p>
         </div>
         <div class="text-right">
-          <div class="text-[11px] text-zinc-400">Status Kompresor</div>
-          <div id="compressorState" class="text-xs font-semibold text-zinc-200 mt-0.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 inline-block">--</div>
+          <div class="text-[11px] text-slate-400 font-medium">Status Kompresor</div>
+          <div id="compressorState" class="text-xs font-semibold text-slate-700 mt-1 px-2.5 py-1 rounded-full bg-emerald-50/90 border border-emerald-200 inline-block">--</div>
         </div>
       </div>
 
-      <div class="grid grid-cols-4 gap-2 mt-4 pt-3.5 border-t border-zinc-800/80 text-center">
+      <div class="grid grid-cols-4 gap-2 mt-4 pt-3.5 border-t border-slate-100 text-center">
         <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Tegangan</div>
-          <div class="text-xs font-bold text-zinc-100 mt-0.5 num"><span id="voltValue">--</span> V</div>
+          <div class="text-[10px] text-slate-500 font-medium">Tegangan</div>
+          <div class="text-xs font-bold text-slate-800 mt-0.5 num"><span id="voltValue">--</span> V</div>
         </div>
         <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Arus Listrik</div>
-          <div class="text-xs font-bold text-zinc-100 mt-0.5 num"><span id="ampValue">--</span> A</div>
+          <div class="text-[10px] text-slate-500 font-medium">Arus Listrik</div>
+          <div class="text-xs font-bold text-slate-800 mt-0.5 num"><span id="ampValue">--</span> A</div>
         </div>
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Hari Ini</div>
-          <div class="text-xs font-bold text-emerald-400 mt-0.5 num"><span id="kwhValue">--</span> kWh</div>
+        <div class="surface-mint p-2.5">
+          <div class="text-[10px] text-emerald-700 font-medium">Hari Ini</div>
+          <div class="text-xs font-bold text-emerald-700 mt-0.5 num"><span id="kwhValue">--</span> kWh</div>
         </div>
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Durasi Nyala</div>
-          <div class="text-xs font-bold text-sky-400 mt-0.5 num"><span id="workHoursToday">--</span></div>
+        <div class="surface-sky p-2.5">
+          <div class="text-[10px] text-sky-700 font-medium">Durasi Nyala</div>
+          <div class="text-xs font-bold text-sky-700 mt-0.5 num"><span id="workHoursToday">--</span></div>
         </div>
       </div>
     </section>
@@ -192,13 +251,13 @@
     <section class="surface-card p-5 space-y-3.5">
       <div class="flex items-center justify-between">
         <div>
-          <span class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Analitik Energi &amp; Penghematan</span>
-          <h3 id="chartSubtitle" class="text-xs text-zinc-300 font-medium mt-0.5">Konsumsi kWh &amp; Penghematan AI SaveIn</h3>
+          <span class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Analitik Energi &amp; Penghematan</span>
+          <h3 id="chartSubtitle" class="text-xs text-slate-600 font-medium mt-0.5">Konsumsi kWh &amp; Penghematan AI SaveIn</h3>
         </div>
       </div>
 
       <!-- Segmented Pill Switcher: Harian | Mingguan | Bulanan -->
-      <div class="grid grid-cols-3 gap-1 bg-zinc-950 p-1 rounded-full border border-zinc-800/90">
+      <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-full border border-slate-200/80">
         <button id="tabDaily" onclick="switchChartPeriod('daily')" class="pressable py-1.5 rounded-full text-xs tab-inactive">
           Harian (Per Jam)
         </button>
@@ -212,21 +271,21 @@
 
       <!-- Summary KPI Strip for Selected Period -->
       <div class="grid grid-cols-4 gap-2 text-center">
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium" id="lblPeriodKwh">Total 7 Hari</div>
-          <div class="text-xs font-bold text-emerald-400 mt-0.5 num"><span id="valPeriodKwh">--</span> kWh</div>
+        <div class="surface-mint p-2.5">
+          <div class="text-[10px] text-emerald-700 font-medium" id="lblPeriodKwh">Total 7 Hari</div>
+          <div class="text-xs font-bold text-emerald-700 mt-0.5 num"><span id="valPeriodKwh">--</span> kWh</div>
         </div>
         <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Biaya</div>
-          <div class="text-xs font-bold text-zinc-100 mt-0.5 num">Rp <span id="valPeriodCost">--</span></div>
+          <div class="text-[10px] text-slate-500 font-medium">Biaya</div>
+          <div class="text-xs font-bold text-slate-800 mt-0.5 num">Rp <span id="valPeriodCost">--</span></div>
         </div>
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Hemat SaveIn</div>
-          <div class="text-xs font-bold text-sky-400 mt-0.5 num"><span id="valPeriodSaved">--</span> kWh</div>
+        <div class="surface-sky p-2.5">
+          <div class="text-[10px] text-sky-700 font-medium">Hemat SaveIn</div>
+          <div class="text-xs font-bold text-sky-700 mt-0.5 num"><span id="valPeriodSaved">--</span> kWh</div>
         </div>
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Durasi Nyala</div>
-          <div class="text-xs font-bold text-zinc-200 mt-0.5 num"><span id="valPeriodHours">--</span></div>
+        <div class="surface-peach p-2.5">
+          <div class="text-[10px] text-amber-700 font-medium">Durasi Nyala</div>
+          <div class="text-xs font-bold text-amber-700 mt-0.5 num"><span id="valPeriodHours">--</span></div>
         </div>
       </div>
 
@@ -236,17 +295,17 @@
       </div>
 
       <!-- Breakdown Table -->
-      <div id="periodTableWrap" class="pt-2.5 border-t border-zinc-800/80 max-h-40 overflow-y-auto space-y-1 text-xs num"></div>
+      <div id="periodTableWrap" class="pt-2.5 border-t border-slate-100 max-h-40 overflow-y-auto space-y-1 text-xs num"></div>
     </section>
 
     <!-- TCL SaveIn Air Conditioner Control Card -->
     <section class="surface-card p-5">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <span class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Kontrol AC TCL SaveIn</span>
-          <h2 id="acName" class="text-sm font-bold text-zinc-100 mt-0.5 num">AC TCL SAVEIN</h2>
+          <span class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Kontrol AC TCL SaveIn</span>
+          <h2 id="acName" class="text-sm font-bold text-slate-800 mt-0.5 num">AC TCL SAVEIN</h2>
         </div>
-        <button id="btnPower" onclick="toggleAcPower()" class="pressable px-4 py-2 rounded-full font-semibold text-xs bg-zinc-800 text-zinc-300 border border-zinc-700 flex items-center gap-1.5">
+        <button id="btnPower" onclick="toggleAcPower()" class="pressable px-4 py-2 rounded-full font-semibold text-xs bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1.5">
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
             <line x1="12" y1="2" x2="12" y2="12"></line>
@@ -256,23 +315,23 @@
       </div>
 
       <!-- Temperature Control Dial -->
-      <div class="flex items-center justify-between surface-inset p-4 my-2">
-        <button onclick="adjustTemp(-1)" aria-label="Turunkan Suhu" class="pressable w-12 h-12 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xl font-bold text-zinc-200 flex items-center justify-center border border-zinc-800">
+      <div class="flex items-center justify-between surface-sky p-4 my-2">
+        <button onclick="adjustTemp(-1)" aria-label="Turunkan Suhu" class="pressable w-12 h-12 rounded-xl bg-white hover:bg-sky-50 text-xl font-bold text-sky-600 flex items-center justify-center border border-sky-200 shadow-sm">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
         <div class="text-center">
-          <div class="text-[11px] text-zinc-400 font-medium">Target Suhu</div>
+          <div class="text-[11px] text-sky-700 font-medium">Target Suhu</div>
           <div class="flex items-start justify-center mt-0.5">
-            <span id="targetTemp" class="text-5xl font-extrabold text-zinc-50 num">--</span>
-            <span class="text-lg font-bold text-sky-400 mt-1">&deg;C</span>
+            <span id="targetTemp" class="text-5xl font-extrabold text-slate-800 num">--</span>
+            <span class="text-lg font-bold text-sky-600 mt-1">&deg;C</span>
           </div>
-          <div class="text-xs text-zinc-400 mt-1 num">
-            Ruangan: <span id="currentTemp" class="font-semibold text-zinc-200">--</span>&deg;C
-            <span id="outdoorTempWrap" class="hidden"> &bull; Outdoor: <span id="outdoorTemp" class="font-semibold text-zinc-200">--</span>&deg;C</span>
-            <span id="coilTempWrap" class="hidden"> &bull; Evap: <span id="coilTemp" class="font-semibold text-zinc-200">--</span>&deg;C</span>
+          <div class="text-xs text-slate-500 mt-1 num">
+            Ruangan: <span id="currentTemp" class="font-semibold text-slate-700">--</span>&deg;C
+            <span id="outdoorTempWrap" class="hidden"> &bull; Outdoor: <span id="outdoorTemp" class="font-semibold text-slate-700">--</span>&deg;C</span>
+            <span id="coilTempWrap" class="hidden"> &bull; Evap: <span id="coilTemp" class="font-semibold text-slate-700">--</span>&deg;C</span>
           </div>
         </div>
-        <button onclick="adjustTemp(1)" aria-label="Naikkan Suhu" class="pressable w-12 h-12 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xl font-bold text-zinc-200 flex items-center justify-center border border-zinc-800">
+        <button onclick="adjustTemp(1)" aria-label="Naikkan Suhu" class="pressable w-12 h-12 rounded-xl bg-white hover:bg-sky-50 text-xl font-bold text-sky-600 flex items-center justify-center border border-sky-200 shadow-sm">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
       </div>
@@ -280,139 +339,150 @@
       <!-- Mode Operasi AC (Cool, Dry, Fan, Auto) -->
       <div class="mt-4">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs text-zinc-400 font-medium">Mode Operasi</span>
-          <span id="activeModeLabel" class="text-xs font-semibold text-sky-400">Cool</span>
+          <span class="text-xs text-slate-500 font-medium">Mode Operasi</span>
+          <span id="activeModeLabel" class="text-xs font-semibold text-sky-600">Cool</span>
         </div>
         <div class="grid grid-cols-4 gap-2">
-          <button id="modeBtn1" onclick="setWorkMode(1)" class="pressable py-2.5 rounded-xl bg-zinc-900 text-xs font-semibold border border-zinc-800 flex items-center justify-center gap-1.5">
+          <button id="modeBtn1" onclick="setWorkMode(1)" class="pressable py-2.5 rounded-xl bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 flex items-center justify-center gap-1.5">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line><path d="m20 16-4-4 4-4"></path><path d="m4 8 4 4-4 4"></path><path d="m16 4-4 4-4-4"></path><path d="m8 20 4-4 4 4"></path></svg>
             <span>Cool</span>
           </button>
-          <button id="modeBtn2" onclick="setWorkMode(2)" class="pressable py-2.5 rounded-xl bg-zinc-900 text-xs font-semibold border border-zinc-800 flex items-center justify-center gap-1.5">
+          <button id="modeBtn2" onclick="setWorkMode(2)" class="pressable py-2.5 rounded-xl bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 flex items-center justify-center gap-1.5">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
             <span>Dry</span>
           </button>
-          <button id="modeBtn3" onclick="setWorkMode(3)" class="pressable py-2.5 rounded-xl bg-zinc-900 text-xs font-semibold border border-zinc-800 flex items-center justify-center gap-1.5">
+          <button id="modeBtn3" onclick="setWorkMode(3)" class="pressable py-2.5 rounded-xl bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 flex items-center justify-center gap-1.5">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"></path><path d="M9.6 4.6A2 2 0 1 1 11 8H2"></path><path d="M12.6 19.4A2 2 0 1 0 14 16H2"></path></svg>
             <span>Fan</span>
           </button>
-          <button id="modeBtn0" onclick="setWorkMode(0)" class="pressable py-2.5 rounded-xl bg-zinc-900 text-xs font-semibold border border-zinc-800 flex items-center justify-center gap-1.5">
+          <button id="modeBtn0" onclick="setWorkMode(0)" class="pressable py-2.5 rounded-xl bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 flex items-center justify-center gap-1.5">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>
             <span>Auto</span>
           </button>
         </div>
       </div>
 
-      <!-- Kecepatan Kipas 7-Gear + Auto & Mute (Sesuai Aplikasi TCL Home) -->
-      <div class="mt-4 pt-3.5 border-t border-zinc-800/80">
+      <!-- Kecepatan Kipas 7-Gear + Auto -->
+      <div class="mt-4 pt-3.5 border-t border-slate-100">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs text-zinc-400 font-medium">Kecepatan Kipas (7-Gear)</span>
-          <span id="fanSpeedLabel" class="text-xs font-semibold text-sky-400 num">Auto</span>
+          <span class="text-xs text-slate-500 font-medium">Kecepatan Kipas (7-Gear)</span>
+          <span id="fanSpeedLabel" class="text-xs font-semibold text-sky-600 num">Auto</span>
         </div>
         <div class="grid grid-cols-8 gap-1.5 num">
-          <button id="fanGear0" onclick="setFanGear(0)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">Auto</button>
-          <button id="fanGear1" onclick="setFanGear(1)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">1</button>
-          <button id="fanGear2" onclick="setFanGear(2)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">2</button>
-          <button id="fanGear3" onclick="setFanGear(3)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">3</button>
-          <button id="fanGear4" onclick="setFanGear(4)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">4</button>
-          <button id="fanGear5" onclick="setFanGear(5)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">5</button>
-          <button id="fanGear6" onclick="setFanGear(6)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">6</button>
-          <button id="fanGear7" onclick="setFanGear(7)" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">7</button>
+          <button id="fanGear0" onclick="setFanGear(0)" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Auto</button>
+          <button id="fanGear1" onclick="setFanGear(1)" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">1</button>
+          <button id="fanGear2" onclick="setFanGear(2)" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">2</button>
+          <button id="fanGear3" onclick="setFanGear(3)" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">3</button>
+          <button id="fanGear4" onclick="setFanGear(4)" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">4</button>
+          <button id="fanGear5" onclick="setFanGear(5)" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">5</button>
+          <button id="fanGear6" onclick="setFanGear(6)" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">6</button>
+          <button id="fanGear7" onclick="setFanGear(7)" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">7</button>
+        </div>
+      </div>
+
+      <!-- Mode Swing Atas-Bawah Lengkap (Sesuai Aplikasi TCL Home) -->
+      <div class="mt-4 pt-3.5 border-t border-slate-100">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-slate-500 font-medium">Mode Swing Atas-Bawah</span>
+          <span id="swingModeLabel" class="text-xs font-semibold text-sky-600">Ayun Penuh</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button id="swingBtn1" onclick="setVerticalSwingMode(1, 1)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Ayun Penuh</button>
+          <button id="swingBtn2" onclick="setVerticalSwingMode(1, 2)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Ayun Atas</button>
+          <button id="swingBtn3" onclick="setVerticalSwingMode(1, 3)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Ayun Bawah</button>
+          <button id="swingBtn9" onclick="setVerticalSwingMode(0, 9)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Tetap Paling Atas</button>
+          <button id="swingBtn10" onclick="setVerticalSwingMode(0, 10)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Tetap Atas</button>
+          <button id="swingBtn11" onclick="setVerticalSwingMode(0, 11)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Tetap Tengah</button>
+          <button id="swingBtn12" onclick="setVerticalSwingMode(0, 12)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Tetap Bawah</button>
+          <button id="swingBtn13" onclick="setVerticalSwingMode(0, 13)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Tetap Paling Bawah</button>
+          <button id="swingBtn8" onclick="setVerticalSwingMode(0, 8)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Swing Mati</button>
         </div>
       </div>
 
       <!-- Tombol Fitur Lengkap Sesuai Aplikasi TCL Home (1 Tombol AI Eco Terpadu) -->
-      <div class="mt-4 pt-3.5 border-t border-zinc-800/80">
-        <div class="text-xs text-zinc-400 font-medium mb-2">Fitur &amp; Mode Pintar TCL Home</div>
+      <div class="mt-4 pt-3.5 border-t border-slate-100">
+        <div class="text-xs text-slate-500 font-medium mb-2">Fitur &amp; Mode Pintar TCL Home</div>
         <div class="grid grid-cols-3 gap-2">
-          <button id="btnAiEco" onclick="toggleAiEco()" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
-              <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+          <button id="btnAiEco" onclick="toggleAiEco()" class="pressable p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
               <span>AI Eco</span>
             </div>
-            <div id="stateAiEco" class="text-[11px] text-zinc-400 mt-1">Nonaktif</div>
+            <div id="stateAiEco" class="text-[11px] text-slate-500 mt-1">Nonaktif</div>
           </button>
 
-          <button id="btnTurbo" onclick="toggleTurbo()" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
-              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          <button id="btnTurbo" onclick="toggleTurbo()" class="pressable p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <svg class="w-3.5 h-3.5 text-sky-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
               <span>Turbo</span>
             </div>
-            <div id="stateTurbo" class="text-[11px] text-zinc-400 mt-1">Nonaktif</div>
+            <div id="stateTurbo" class="text-[11px] text-slate-500 mt-1">Nonaktif</div>
           </button>
 
-          <button id="btnVSwing" onclick="toggleVerticalSwing()" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
-              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"></path><path d="m7 9 5-5 5 5"></path></svg>
-              <span>Swing</span>
-            </div>
-            <div id="stateVSwing" class="text-[11px] text-zinc-400 mt-1">Tetap</div>
-          </button>
-
-          <button id="btnSleep" onclick="toggleSleep()" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
-              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+          <button id="btnSleep" onclick="toggleSleep()" class="pressable p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
               <span>Tidur</span>
             </div>
-            <div id="stateSleep" class="text-[11px] text-zinc-400 mt-1">Nonaktif</div>
+            <div id="stateSleep" class="text-[11px] text-slate-500 mt-1">Nonaktif</div>
           </button>
 
-          <button id="btnHealthy" onclick="toggleFeature('healthy')" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
-              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <button id="btnHealthy" onclick="toggleFeature('healthy')" class="pressable p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <svg class="w-3.5 h-3.5 text-teal-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
               <span>Health Ion</span>
             </div>
-            <div id="stateHealthy" class="text-[11px] text-zinc-400 mt-1">Nonaktif</div>
+            <div id="stateHealthy" class="text-[11px] text-slate-500 mt-1">Nonaktif</div>
           </button>
 
-          <button id="btnScreen" onclick="toggleFeature('screen')" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
-              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          <button id="btnScreen" onclick="toggleFeature('screen')" class="pressable p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
               <span>Layar LED</span>
             </div>
-            <div id="stateScreen" class="text-[11px] text-zinc-400 mt-1">Menyala</div>
+            <div id="stateScreen" class="text-[11px] text-slate-500 mt-1">Menyala</div>
           </button>
 
-          <button id="btnBeep" onclick="toggleFeature('beepSwitch')" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
-              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+          <button id="btnBeep" onclick="toggleFeature('beepSwitch')" class="pressable p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <svg class="w-3.5 h-3.5 text-sky-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
               <span>Suara Beep</span>
             </div>
-            <div id="stateBeep" class="text-[11px] text-zinc-400 mt-1">Aktif</div>
+            <div id="stateBeep" class="text-[11px] text-slate-500 mt-1">Aktif</div>
           </button>
 
-          <button id="btnSelfClean" onclick="toggleFeature('selfClean')" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
-              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+          <button id="btnSelfClean" onclick="toggleFeature('selfClean')" class="pressable p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <svg class="w-3.5 h-3.5 text-cyan-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
               <span>Self Clean</span>
             </div>
-            <div id="stateSelfClean" class="text-[11px] text-zinc-400 mt-1">Standby</div>
+            <div id="stateSelfClean" class="text-[11px] text-slate-500 mt-1">Standby</div>
           </button>
 
-          <button id="btnAntiMildew" onclick="toggleFeature('antiMoldew')" class="pressable p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
-              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+          <button id="btnAntiMildew" onclick="toggleFeature('antiMoldew')" class="pressable p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <svg class="w-3.5 h-3.5 text-violet-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
               <span>Anti Jamur</span>
             </div>
-            <div id="stateAntiMildew" class="text-[11px] text-zinc-400 mt-1">Nonaktif</div>
+            <div id="stateAntiMildew" class="text-[11px] text-slate-500 mt-1">Nonaktif</div>
           </button>
         </div>
       </div>
 
       <!-- Generator Mode (SaveIn Gear Limit L1 - L6) -->
-      <div class="mt-4 pt-3.5 border-t border-zinc-800/80">
+      <div class="mt-4 pt-3.5 border-t border-slate-100">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs text-zinc-400 font-medium">Generator Mode (Pembatas Daya)</span>
-          <span id="genModeLabel" class="text-xs font-semibold text-sky-400 num">Off (100%)</span>
+          <span class="text-xs text-slate-500 font-medium">Generator Mode (Pembatas Daya)</span>
+          <span id="genModeLabel" class="text-xs font-semibold text-sky-600 num">Off (100%)</span>
         </div>
         <div class="grid grid-cols-7 gap-1.5 num">
-          <button id="genBtn0" onclick="setCommand({generatorMode: 0})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">Off</button>
-          <button id="genBtn1" onclick="setCommand({generatorMode: 1})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L1</button>
-          <button id="genBtn2" onclick="setCommand({generatorMode: 2})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L2</button>
-          <button id="genBtn3" onclick="setCommand({generatorMode: 3})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L3</button>
-          <button id="genBtn4" onclick="setCommand({generatorMode: 4})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L4</button>
-          <button id="genBtn5" onclick="setCommand({generatorMode: 5})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L5</button>
-          <button id="genBtn6" onclick="setCommand({generatorMode: 6})" class="pressable py-2 rounded-lg bg-zinc-900 text-[11px] font-semibold border border-zinc-800">L6</button>
+          <button id="genBtn0" onclick="setCommand({generatorMode: 0})" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Off</button>
+          <button id="genBtn1" onclick="setCommand({generatorMode: 1})" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">L1</button>
+          <button id="genBtn2" onclick="setCommand({generatorMode: 2})" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">L2</button>
+          <button id="genBtn3" onclick="setCommand({generatorMode: 3})" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">L3</button>
+          <button id="genBtn4" onclick="setCommand({generatorMode: 4})" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">L4</button>
+          <button id="genBtn5" onclick="setCommand({generatorMode: 5})" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">L5</button>
+          <button id="genBtn6" onclick="setCommand({generatorMode: 6})" class="pressable py-2 rounded-lg bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">L6</button>
         </div>
       </div>
     </section>
@@ -421,48 +491,48 @@
     <section class="surface-card p-5 space-y-3.5">
       <div class="flex items-center justify-between">
         <div>
-          <span class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Diagnostik &amp; Sensor Teknis</span>
-          <h3 class="text-xs text-zinc-300 font-medium mt-0.5">Telemetri Unit Indoor &amp; Outdoor</h3>
+          <span class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Diagnostik &amp; Sensor Teknis</span>
+          <h3 class="text-xs text-slate-600 font-medium mt-0.5">Telemetri Unit Indoor &amp; Outdoor</h3>
         </div>
-        <span id="diagErrorBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 font-medium">Normal</span>
+        <span id="diagErrorBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">Normal</span>
       </div>
 
       <div class="grid grid-cols-3 gap-2 text-center num">
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Kompresor</div>
-          <div class="text-xs font-bold text-zinc-100 mt-0.5"><span id="diagCompFreq">--</span> Hz</div>
+        <div class="surface-lavender p-2.5">
+          <div class="text-[10px] text-violet-700 font-medium">Kompresor</div>
+          <div class="text-xs font-bold text-slate-800 mt-0.5"><span id="diagCompFreq">--</span> Hz</div>
+        </div>
+        <div class="surface-lavender p-2.5">
+          <div class="text-[10px] text-violet-700 font-medium">Kipas Outdoor</div>
+          <div class="text-xs font-bold text-slate-800 mt-0.5"><span id="diagOutdoorFan">--</span> RPM</div>
+        </div>
+        <div class="surface-lavender p-2.5">
+          <div class="text-[10px] text-violet-700 font-medium">Kipas Indoor</div>
+          <div class="text-xs font-bold text-slate-800 mt-0.5"><span id="diagIndoorFanPct">--</span>%</div>
+        </div>
+        <div class="surface-sky p-2.5">
+          <div class="text-[10px] text-sky-700 font-medium">Suhu Evap Indoor</div>
+          <div class="text-xs font-bold text-sky-700 mt-0.5"><span id="diagCoilTemp">--</span>&deg;C</div>
         </div>
         <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Kipas Outdoor</div>
-          <div class="text-xs font-bold text-zinc-100 mt-0.5"><span id="diagOutdoorFan">--</span> RPM</div>
+          <div class="text-[10px] text-slate-500 font-medium">Katup EEV</div>
+          <div class="text-xs font-bold text-slate-800 mt-0.5"><span id="diagEevDegree">--</span></div>
+        </div>
+        <div class="surface-mint p-2.5">
+          <div class="text-[10px] text-emerald-700 font-medium">Status Filter</div>
+          <div class="text-xs font-bold text-emerald-700 mt-0.5" id="diagFilterStatus">Bersih</div>
+        </div>
+        <div class="surface-sky p-2.5">
+          <div class="text-[10px] text-sky-700 font-medium">AI SaveIn Aktif</div>
+          <div class="text-xs font-bold text-sky-700 mt-0.5" id="diagAiWorkTime">--</div>
         </div>
         <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Kipas Indoor</div>
-          <div class="text-xs font-bold text-zinc-100 mt-0.5"><span id="diagIndoorFanPct">--</span>%</div>
+          <div class="text-[10px] text-slate-500 font-medium">AI Self-Learn</div>
+          <div class="text-xs font-bold text-slate-800 mt-0.5" id="diagSelfLearn">--</div>
         </div>
         <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Suhu Evap Indoor</div>
-          <div class="text-xs font-bold text-sky-400 mt-0.5"><span id="diagCoilTemp">--</span>&deg;C</div>
-        </div>
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Katup EEV</div>
-          <div class="text-xs font-bold text-zinc-100 mt-0.5"><span id="diagEevDegree">--</span></div>
-        </div>
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Status Filter</div>
-          <div class="text-xs font-bold text-emerald-400 mt-0.5" id="diagFilterStatus">Bersih</div>
-        </div>
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">AI SaveIn Aktif</div>
-          <div class="text-xs font-bold text-sky-400 mt-0.5" id="diagAiWorkTime">--</div>
-        </div>
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">AI Self-Learn</div>
-          <div class="text-xs font-bold text-zinc-100 mt-0.5" id="diagSelfLearn">--</div>
-        </div>
-        <div class="surface-inset p-2.5">
-          <div class="text-[10px] text-zinc-400 font-medium">Self Clean</div>
-          <div class="text-xs font-bold text-zinc-100 mt-0.5" id="diagSelfCleanPct">Standby</div>
+          <div class="text-[10px] text-slate-500 font-medium">Self Clean</div>
+          <div class="text-xs font-bold text-slate-800 mt-0.5" id="diagSelfCleanPct">Standby</div>
         </div>
       </div>
     </section>
@@ -470,67 +540,107 @@
     <!-- Live Log Card -->
     <section class="surface-card p-4">
       <div class="flex items-center justify-between mb-2">
-        <h3 class="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">Log Telemetri Suhu vs Watt</h3>
-        <span class="text-[11px] text-zinc-500 num">Interval 2 dtk</span>
+        <h3 class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Log Telemetri Suhu vs Watt</h3>
+        <span class="text-[11px] text-slate-400 num">Interval 2 dtk</span>
       </div>
-      <div id="historyList" class="space-y-1 text-xs text-zinc-300 max-h-36 overflow-y-auto num">
-        <div class="text-zinc-500">Menunggu pembacaan data...</div>
+      <div id="historyList" class="space-y-1 text-xs text-slate-600 max-h-36 overflow-y-auto num">
+        <div class="text-slate-400">Menunggu pembacaan data...</div>
       </div>
     </section>
   </main>
 
+  <!-- Change Password Modal -->
+  <div id="passwordModal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="surface-card max-w-sm w-full p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-800">Ganti Password Masuk</h2>
+        <button onclick="toggleModal('passwordModal')" class="pressable px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-800 text-xs">Tutup</button>
+      </div>
+      <form onsubmit="submitChangePassword(event)" class="space-y-3">
+        <div>
+          <label class="text-[11px] font-medium text-slate-500">Password Lama</label>
+          <input id="oldPwInput" type="password" required placeholder="Masukkan password saat ini" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-sky-400 focus:bg-white" />
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500">Password Baru (min. 4 karakter)</label>
+          <input id="newPwInput" type="password" required minlength="4" placeholder="Masukkan password baru" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-sky-400 focus:bg-white" />
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500">Konfirmasi Password Baru</label>
+          <input id="confirmPwInput" type="password" required minlength="4" placeholder="Ulangi password baru" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-sky-400 focus:bg-white" />
+        </div>
+        <div id="pwFeedback" class="hidden text-xs font-medium rounded-lg p-2.5"></div>
+        <button type="submit" class="pressable w-full py-2.5 rounded-full bg-violet-600 hover:bg-violet-500 font-semibold text-xs text-white">
+          Simpan Password Baru
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="surface-card max-w-md w-full p-5 max-h-[90vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold text-zinc-100">Konfigurasi Akun TCL Home &amp; Tuya</h2>
-        <button onclick="toggleModal('settingsModal')" class="pressable px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white text-xs">Tutup</button>
+        <h2 class="text-sm font-bold text-slate-800">Konfigurasi Perangkat &amp; Cuaca</h2>
+        <button onclick="toggleModal('settingsModal')" class="pressable px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-800 text-xs">Tutup</button>
       </div>
 
       <!-- TCL Home Credentials -->
-      <div class="space-y-2 surface-inset p-3.5">
-        <div class="text-[11px] font-bold text-sky-400 uppercase tracking-wider">1. Akun Aplikasi TCL Home (AC SaveIn)</div>
-        <input id="tclUser" type="text" placeholder="Email / Nomor HP TCL Home" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
-        <input id="tclPass" type="password" placeholder="Password TCL Home" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
-        <input id="tclDeviceId" type="text" placeholder="Device ID (Kosongkan untuk deteksi otomatis)" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
+      <div class="space-y-2 surface-sky p-3.5">
+        <div class="text-[11px] font-bold text-sky-700 uppercase tracking-wider">1. Akun Aplikasi TCL Home (AC SaveIn)</div>
+        <input id="tclUser" type="text" placeholder="Email / Nomor HP TCL Home" class="w-full px-3 py-2 rounded-lg bg-white border border-sky-200 text-xs text-slate-800 focus:outline-none focus:border-sky-400" />
+        <input id="tclPass" type="password" placeholder="Password TCL Home" class="w-full px-3 py-2 rounded-lg bg-white border border-sky-200 text-xs text-slate-800 focus:outline-none focus:border-sky-400" />
+        <input id="tclDeviceId" type="text" placeholder="Device ID (Kosongkan untuk deteksi otomatis)" class="w-full px-3 py-2 rounded-lg bg-white border border-sky-200 text-xs text-slate-800 focus:outline-none focus:border-sky-400" />
       </div>
 
       <!-- Tuya Smart Plug Credentials -->
-      <div class="space-y-2 surface-inset p-3.5">
-        <div class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">2. Smart Plug Tuya (Pembaca Watt Aktual)</div>
-        <select id="tuyaMode" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500">
+      <div class="space-y-2 surface-mint p-3.5">
+        <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">2. Smart Plug Tuya (Pembaca Watt Aktual)</div>
+        <select id="tuyaMode" class="w-full px-3 py-2 rounded-lg bg-white border border-emerald-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-400">
           <option value="cloud">Hybrid (Local Wi-Fi v3.4 + Tuya Cloud)</option>
           <option value="local">Tuya Local Wi-Fi Only</option>
         </select>
         <div class="grid grid-cols-2 gap-2">
-          <input id="tuyaRegion" type="text" value="sg" placeholder="Region (sg / us / eu / cn)" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
-          <input id="tuyaDeviceId" type="text" placeholder="Tuya Device ID" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
+          <input id="tuyaRegion" type="text" value="sg" placeholder="Region (sg / us / eu / cn)" class="w-full px-3 py-2 rounded-lg bg-white border border-emerald-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-400" />
+          <input id="tuyaDeviceId" type="text" placeholder="Tuya Device ID" class="w-full px-3 py-2 rounded-lg bg-white border border-emerald-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-400" />
         </div>
-        <input id="tuyaKey" type="text" placeholder="Tuya Cloud Access ID (Client ID)" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
-        <input id="tuyaSecret" type="password" placeholder="Tuya Cloud Access Secret" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
+        <input id="tuyaKey" type="text" placeholder="Tuya Cloud Access ID (Client ID)" class="w-full px-3 py-2 rounded-lg bg-white border border-emerald-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-400" />
+        <input id="tuyaSecret" type="password" placeholder="Tuya Cloud Access Secret" class="w-full px-3 py-2 rounded-lg bg-white border border-emerald-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-400" />
         <div class="grid grid-cols-2 gap-2 pt-1">
-          <input id="tuyaLocalIp" type="text" placeholder="IP Lokal (192.168.100.59)" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
-          <input id="tuyaLocalKey" type="text" placeholder="Local Key" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 focus:outline-none focus:border-sky-500" />
+          <input id="tuyaLocalIp" type="text" placeholder="IP Lokal (192.168.100.59)" class="w-full px-3 py-2 rounded-lg bg-white border border-emerald-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-400" />
+          <input id="tuyaLocalKey" type="text" placeholder="Local Key" class="w-full px-3 py-2 rounded-lg bg-white border border-emerald-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-400" />
         </div>
       </div>
 
-      <div class="space-y-1">
-        <label class="text-xs text-zinc-400">Tarif Listrik per kWh (Rp)</label>
-        <input id="tarifPln" type="number" value="1444.70" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 num focus:outline-none focus:border-sky-500" />
+      <!-- Lokasi Cuaca & Tarif PLN -->
+      <div class="space-y-2 surface-peach p-3.5">
+        <div class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">3. Lokasi Cuaca &amp; Tarif Listrik</div>
+        <input id="weatherCityInput" type="text" placeholder="Nama Kota (mis. Bekasi / Jakarta)" class="w-full px-3 py-2 rounded-lg bg-white border border-amber-200 text-xs text-slate-800 focus:outline-none focus:border-amber-400" />
+        <div class="grid grid-cols-2 gap-2">
+          <input id="weatherLatInput" type="number" step="0.0001" placeholder="Latitude (-6.25)" class="w-full px-3 py-2 rounded-lg bg-white border border-amber-200 text-xs text-slate-800 num focus:outline-none focus:border-amber-400" />
+          <input id="weatherLonInput" type="number" step="0.0001" placeholder="Longitude (107.12)" class="w-full px-3 py-2 rounded-lg bg-white border border-amber-200 text-xs text-slate-800 num focus:outline-none focus:border-amber-400" />
+        </div>
+        <div class="pt-1">
+          <label class="text-[11px] text-amber-800 font-medium">Tarif Listrik per kWh (Rp)</label>
+          <input id="tarifPln" type="number" value="1444.70" class="mt-1 w-full px-3 py-2 rounded-lg bg-white border border-amber-200 text-xs text-slate-800 num focus:outline-none focus:border-amber-400" />
+        </div>
       </div>
 
-      <button onclick="saveConfig()" class="pressable w-full py-2.5 rounded-full bg-sky-500 hover:bg-sky-400 font-semibold text-xs text-white">
+      <button onclick="saveConfig()" class="pressable w-full py-2.5 rounded-full bg-sky-600 hover:bg-sky-500 font-semibold text-xs text-white">
         Simpan Konfigurasi
       </button>
     </div>
   </div>
 
   <script>
+    // Clear any previously persisted token so password is ALWAYS required on every open/refresh
+    try { localStorage.removeItem('tcl_tuya_app_token'); } catch (e) {}
+
     let currentState = { ac: null, plug: null, tarif: 1444.7 };
     let analyticsData = null;
     let activePeriod = 'weekly'; // 'daily' | 'weekly' | 'monthly'
     let energyChartInstance = null;
-    let appToken = localStorage.getItem('tcl_tuya_app_token') || '';
+    let appToken = ''; // In-memory only: always asks for password on page load
 
     function authHeaders(extra = {}) {
       return { ...extra, 'x-app-token': appToken };
@@ -538,6 +648,8 @@
 
     function showLoginOverlay() {
       document.getElementById('loginOverlay').classList.remove('hidden');
+      const inp = document.getElementById('loginPasswordInput');
+      if (inp) setTimeout(() => inp.focus(), 50);
     }
 
     function hideLoginOverlay() {
@@ -561,25 +673,93 @@
         }
         const data = await res.json();
         appToken = data.token;
-        localStorage.setItem('tcl_tuya_app_token', appToken);
         document.getElementById('loginPasswordInput').value = '';
         hideLoginOverlay();
         loadConfigIntoForm();
+        refreshWeather();
         refreshAll();
       } catch (err) {
         errEl.classList.remove('hidden');
       }
     }
 
+    async function submitChangePassword(e) {
+      e.preventDefault();
+      const oldPw = document.getElementById('oldPwInput').value;
+      const newPw = document.getElementById('newPwInput').value;
+      const confirmPw = document.getElementById('confirmPwInput').value;
+      const fb = document.getElementById('pwFeedback');
+      fb.classList.remove('hidden', 'bg-rose-50', 'text-rose-600', 'bg-emerald-50', 'text-emerald-700');
+
+      if (newPw !== confirmPw) {
+        fb.classList.add('bg-rose-50', 'text-rose-600');
+        fb.innerText = 'Konfirmasi password baru tidak cocok!';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/change-password', {
+          method: 'POST',
+          headers: authHeaders({'Content-Type': 'application/json'}),
+          body: JSON.stringify({ old_password: oldPw, new_password: newPw })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          fb.classList.add('bg-rose-50', 'text-rose-600');
+          fb.innerText = data.detail || 'Gagal mengganti password.';
+          return;
+        }
+        appToken = data.token;
+        document.getElementById('oldPwInput').value = '';
+        document.getElementById('newPwInput').value = '';
+        document.getElementById('confirmPwInput').value = '';
+        fb.classList.add('bg-emerald-50', 'text-emerald-700');
+        fb.innerText = data.is_vercel
+          ? 'Password berhasil diubah! (Agar permanen di Vercel saat server restart, perbarui juga APP_PASSWORD di Vercel Env Vars).'
+          : 'Password masuk berhasil diperbarui!';
+      } catch (err) {
+        fb.classList.add('bg-rose-50', 'text-rose-600');
+        fb.innerText = 'Terjadi kesalahan koneksi.';
+      }
+    }
+
     function logoutApp() {
       appToken = '';
-      localStorage.removeItem('tcl_tuya_app_token');
       showLoginOverlay();
     }
 
     function toggleModal(id) {
       const el = document.getElementById(id);
       el.classList.toggle('hidden');
+    }
+
+    async function refreshWeather() {
+      if (!appToken) return;
+      try {
+        const res = await fetch('/api/weather', { headers: authHeaders() });
+        if (!res.ok) return;
+        const w = await res.json();
+        document.getElementById('weatherCity').innerText = w.city || 'Sekitarnya';
+        document.getElementById('weatherTemp').innerText = w.temp !== undefined && w.temp !== null ? `${Math.round(w.temp)}°C` : '--°C';
+        document.getElementById('weatherDesc').innerText = w.desc || '--';
+        document.getElementById('weatherFeels').innerText = w.feels_like !== undefined && w.feels_like !== null ? `${Math.round(w.feels_like)}°C` : '--°C';
+        document.getElementById('weatherHum').innerText = w.humidity !== undefined && w.humidity !== null ? `${w.humidity}%` : '--%';
+        document.getElementById('weatherRain').innerText = w.rain_chance !== undefined && w.rain_chance !== null ? `${w.rain_chance}%` : '0%';
+        if (w.temp_min !== null && w.temp_max !== null && w.temp_min !== undefined) {
+          document.getElementById('weatherMinMax').innerText = `${Math.round(w.temp_min)}°/${Math.round(w.temp_max)}°C`;
+        }
+        const iconBox = document.getElementById('weatherIconBox');
+        if (w.icon === 'rain' || w.icon === 'storm') {
+          iconBox.className = 'w-11 h-11 rounded-2xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0';
+          iconBox.innerHTML = `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M16 14v6"></path><path d="M8 14v6"></path><path d="M12 16v6"></path></svg>`;
+        } else if (w.icon === 'cloud' || w.icon === 'cloud-sun') {
+          iconBox.className = 'w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-500 shrink-0';
+          iconBox.innerHTML = `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>`;
+        } else {
+          iconBox.className = 'w-11 h-11 rounded-2xl bg-amber-100/80 border border-amber-200/80 flex items-center justify-center text-amber-500 shrink-0';
+          iconBox.innerHTML = `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>`;
+        }
+      } catch (e) {}
     }
 
     async function loadConfigIntoForm() {
@@ -597,6 +777,9 @@
         document.getElementById('tuyaLocalIp').value = cfg.tuya_local_ip || '';
         document.getElementById('tuyaLocalKey').value = cfg.tuya_local_key || '';
         document.getElementById('tarifPln').value = cfg.pln_rate || 1444.70;
+        document.getElementById('weatherCityInput').value = cfg.weather_city || 'Bekasi / Sekitarnya';
+        document.getElementById('weatherLatInput').value = cfg.weather_lat ?? -6.25;
+        document.getElementById('weatherLonInput').value = cfg.weather_lon ?? 107.12;
       } catch (e) {}
     }
 
@@ -612,7 +795,10 @@
         tuya_api_secret: document.getElementById('tuyaSecret').value.trim(),
         tuya_local_ip: document.getElementById('tuyaLocalIp').value.trim(),
         tuya_local_key: document.getElementById('tuyaLocalKey').value.trim(),
-        pln_rate: parseFloat(document.getElementById('tarifPln').value) || 1444.7
+        pln_rate: parseFloat(document.getElementById('tarifPln').value) || 1444.7,
+        weather_city: document.getElementById('weatherCityInput').value.trim() || 'Bekasi / Sekitarnya',
+        weather_lat: parseFloat(document.getElementById('weatherLatInput').value) || -6.25,
+        weather_lon: parseFloat(document.getElementById('weatherLonInput').value) || 107.12
       };
       await fetch('/api/config', {
         method: 'POST',
@@ -620,6 +806,7 @@
         body: JSON.stringify(payload)
       });
       toggleModal('settingsModal');
+      refreshWeather();
       refreshAll();
     }
 
@@ -667,6 +854,9 @@
       setInterval(() => {
         if (appToken) refreshAnalytics();
       }, 30000);
+      setInterval(() => {
+        if (appToken) refreshWeather();
+      }, 900000);
     }
 
     function switchChartPeriod(period) {
@@ -726,12 +916,12 @@
         const activeHours = hourly.filter((h, idx) => idx <= curHourIdx && (h.avg_watts > 0 || h.kwh > 0));
         tableEl.innerHTML = activeHours.length > 0
           ? [...activeHours].reverse().map(h => `
-              <div class="flex justify-between items-center py-1.5 border-b border-zinc-800/70">
-                <span class="text-zinc-300 font-medium">Jam ${h.label}</span>
-                <span class="text-zinc-400">Avg ${h.avg_watts} W (Max ${h.peak_watts} W)</span>
-                <span class="text-emerald-400 font-semibold">+${Number(h.kwh).toFixed(4)} kWh</span>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                <span class="text-slate-700 font-medium">Jam ${h.label}</span>
+                <span class="text-slate-500">Avg ${h.avg_watts} W (Max ${h.peak_watts} W)</span>
+                <span class="text-emerald-600 font-semibold">+${Number(h.kwh).toFixed(4)} kWh</span>
               </div>`).join('')
-          : `<div class="text-zinc-400 py-1">Total kumulatif hari ini s/d jam ${String(curHourIdx).padStart(2, '0')}:00: <b class="text-emerald-400">${displayTodayKwh} kWh</b></div>`;
+          : `<div class="text-slate-500 py-1">Total kumulatif hari ini s/d jam ${String(curHourIdx).padStart(2, '0')}:00: <b class="text-emerald-600">${displayTodayKwh} kWh</b></div>`;
 
       } else if (activePeriod === 'weekly') {
         document.getElementById('lblPeriodKwh').innerText = 'Total 7 Hari';
@@ -740,7 +930,7 @@
         document.getElementById('valPeriodSaved').innerText = s.week_ai_saved_kwh ?? 0;
         document.getElementById('valPeriodHours').innerText = `${s.week_work_hours ?? 0} jam`;
         document.getElementById('workHoursToday').innerText = s.today_work_str || `${s.today_work_hours ?? 0} jam`;
-        document.getElementById('chartSubtitle').innerText = 'Konsumsi kWh Harian per Tanggal (00:00 - 00:00 &bull; Live Hari Ini)';
+        document.getElementById('chartSubtitle').innerText = 'Konsumsi kWh Harian per Tanggal (00:00 - 00:00 • Live Hari Ini)';
 
         const days = analyticsData.weekly || [];
         labels = days.map(d => d.label);
@@ -748,11 +938,11 @@
         secondValues = days.map(d => d.ai_saved_kwh);
 
         tableEl.innerHTML = [...days].reverse().map((d, idx) => `
-          <div class="flex justify-between items-center py-1.5 border-b border-zinc-800/70">
-            <span class="text-zinc-200 font-medium">${d.label} ${idx === 0 ? '<span class="text-[10px] ml-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold">LIVE</span>' : ''}</span>
-            <span class="text-zinc-400">${d.work_duration_str}</span>
-            <span class="text-sky-400">Hemat ${d.ai_saved_kwh} kWh</span>
-            <span class="text-emerald-400 font-semibold">${d.kwh} kWh (Rp ${Math.round(d.kwh * rate).toLocaleString('id-ID')})</span>
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+            <span class="text-slate-700 font-medium">${d.label} ${idx === 0 ? '<span class="text-[10px] ml-1 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">LIVE</span>' : ''}</span>
+            <span class="text-slate-500">${d.work_duration_str}</span>
+            <span class="text-sky-600">Hemat ${d.ai_saved_kwh} kWh</span>
+            <span class="text-emerald-600 font-semibold">${d.kwh} kWh (Rp ${Math.round(d.kwh * rate).toLocaleString('id-ID')})</span>
           </div>`).join('');
 
       } else {
@@ -772,13 +962,13 @@
         const nonZeroMonths = [...months].reverse().filter(m => m.kwh > 0 || m.ai_saved_kwh > 0 || m.work_hours > 0);
         tableEl.innerHTML = nonZeroMonths.length > 0
           ? nonZeroMonths.map((m, idx) => `
-              <div class="flex justify-between items-center py-1.5 border-b border-zinc-800/70">
-                <span class="text-zinc-200 font-semibold">${m.label} ${idx === 0 ? '<span class="text-[10px] ml-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold">LIVE</span>' : ''}</span>
-                <span class="text-zinc-400">${m.work_duration_str}</span>
-                <span class="text-sky-400">Hemat ${m.ai_saved_kwh} kWh</span>
-                <span class="text-emerald-400 font-semibold">${m.kwh} kWh (Rp ${Math.round(m.kwh * rate).toLocaleString('id-ID')})</span>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                <span class="text-slate-700 font-semibold">${m.label} ${idx === 0 ? '<span class="text-[10px] ml-1 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">LIVE</span>' : ''}</span>
+                <span class="text-slate-500">${m.work_duration_str}</span>
+                <span class="text-sky-600">Hemat ${m.ai_saved_kwh} kWh</span>
+                <span class="text-emerald-600 font-semibold">${m.kwh} kWh (Rp ${Math.round(m.kwh * rate).toLocaleString('id-ID')})</span>
               </div>`).join('')
-          : '<div class="text-zinc-500">Belum ada akumulasi bulanan.</div>';
+          : '<div class="text-slate-400">Belum ada akumulasi bulanan.</div>';
       }
 
       const ctx = document.getElementById('energyChart').getContext('2d');
@@ -794,10 +984,10 @@
               data: mainValues,
               borderColor: '#10b981',
               backgroundColor: 'rgba(16, 185, 129, 0.14)',
-              borderWidth: 2.2,
-              pointRadius: 2.5,
+              borderWidth: 2.4,
+              pointRadius: 3,
               pointHoverRadius: 5,
-              pointBackgroundColor: '#10b981',
+              pointBackgroundColor: '#059669',
               fill: true,
               tension: 0.28
             }
@@ -806,14 +996,14 @@
             {
               label: mainLabel,
               data: mainValues,
-              backgroundColor: '#10b981',
-              borderRadius: 5
+              backgroundColor: '#34d399',
+              borderRadius: 6
             },
             {
               label: secondLabel,
               data: secondValues,
-              backgroundColor: '#0ea5e9',
-              borderRadius: 5
+              backgroundColor: '#38bdf8',
+              borderRadius: 6
             }
           ];
 
@@ -841,7 +1031,7 @@
           animation: false,
           plugins: {
             legend: {
-              labels: { color: '#a1a1aa', font: { family: 'Inter', size: 10, weight: '500' }, boxWidth: 10 }
+              labels: { color: '#475569', font: { family: 'Inter', size: 10, weight: '600' }, boxWidth: 10 }
             }
           },
           scales: {
@@ -849,22 +1039,22 @@
               title: {
                 display: isDailyLine,
                 text: 'Jam (WIB)',
-                color: '#71717a',
+                color: '#64748b',
                 font: { family: 'Inter', size: 10 }
               },
-              ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 10 } },
-              grid: { color: 'rgba(255, 255, 255, 0.04)' }
+              ticks: { color: '#64748b', font: { family: 'Inter', size: 10 } },
+              grid: { color: 'rgba(148, 163, 184, 0.12)' }
             },
             y: {
               beginAtZero: true,
               title: {
                 display: true,
                 text: 'kWh',
-                color: '#71717a',
+                color: '#64748b',
                 font: { family: 'Inter', size: 10 }
               },
-              ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 10 } },
-              grid: { color: 'rgba(255, 255, 255, 0.06)' }
+              ticks: { color: '#64748b', font: { family: 'Inter', size: 10 } },
+              grid: { color: 'rgba(148, 163, 184, 0.18)' }
             }
           }
         }
@@ -944,10 +1134,10 @@
       const btnPowerText = document.getElementById('btnPowerText');
       if (ac.power) {
         if (btnPowerText) btnPowerText.innerText = 'ON';
-        btnPower.className = 'pressable px-4 py-2 rounded-full font-semibold text-xs bg-sky-500 text-white flex items-center gap-1.5 shadow-sm';
+        btnPower.className = 'pressable px-4 py-2 rounded-full font-semibold text-xs bg-sky-600 text-white flex items-center gap-1.5 shadow-sm';
       } else {
         if (btnPowerText) btnPowerText.innerText = 'OFF';
-        btnPower.className = 'pressable px-4 py-2 rounded-full font-semibold text-xs bg-zinc-900 text-zinc-400 border border-zinc-800 flex items-center gap-1.5';
+        btnPower.className = 'pressable px-4 py-2 rounded-full font-semibold text-xs bg-slate-100 text-slate-500 border border-slate-200 flex items-center gap-1.5';
       }
 
       // Highlight Active Work Mode (1: Cool, 2: Dry, 3: Fan, 0: Auto)
@@ -956,9 +1146,9 @@
         const mBtn = document.getElementById('modeBtn' + m);
         if (!mBtn) return;
         if (ac.work_mode_code === m) {
-          mBtn.className = 'pressable py-2.5 rounded-xl bg-sky-500 text-white text-xs font-semibold border border-sky-400 flex items-center justify-center gap-1.5';
+          mBtn.className = 'pressable py-2.5 rounded-xl bg-sky-600 text-white text-xs font-semibold border border-sky-500 shadow-sm flex items-center justify-center gap-1.5';
         } else {
-          mBtn.className = 'pressable py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800/80 text-zinc-300 text-xs font-medium border border-zinc-800 flex items-center justify-center gap-1.5';
+          mBtn.className = 'pressable py-2.5 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-700 text-xs font-medium border border-slate-200 flex items-center justify-center gap-1.5';
         }
       });
 
@@ -970,16 +1160,39 @@
         const gBtn = document.getElementById('fanGear' + g);
         if (!gBtn) return;
         if (g === activeGear) {
-          gBtn.className = 'pressable py-2 rounded-lg bg-sky-500 text-white text-[11px] font-bold border border-sky-400';
+          gBtn.className = 'pressable py-2 rounded-lg bg-sky-600 text-white text-[11px] font-bold border border-sky-500 shadow-sm';
         } else {
-          gBtn.className = 'pressable py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800/80 text-zinc-300 text-[11px] font-semibold border border-zinc-800';
+          gBtn.className = 'pressable py-2 rounded-lg bg-slate-50 hover:bg-sky-50 text-slate-700 text-[11px] font-semibold border border-slate-200';
         }
       }
+
+      // Highlight Active Vertical Swing Mode (TCL Home modes)
+      const swingNames = {
+        1: 'Ayun Penuh',
+        2: 'Ayun Atas',
+        3: 'Ayun Bawah',
+        8: 'Swing Mati',
+        9: 'Tetap Paling Atas',
+        10: 'Tetap Atas',
+        11: 'Tetap Tengah',
+        12: 'Tetap Bawah',
+        13: 'Tetap Paling Bawah'
+      };
+      const vDir = ac.vertical_direction ?? (ac.vertical_swing ? 1 : 8);
+      document.getElementById('swingModeLabel').innerText = swingNames[vDir] || (ac.vertical_swing ? 'Ayun Penuh' : 'Swing Mati');
+      [1, 2, 3, 8, 9, 10, 11, 12, 13].forEach(code => {
+        const sb = document.getElementById('swingBtn' + code);
+        if (!sb) return;
+        if (vDir === code) {
+          sb.className = 'pressable py-2 px-2 rounded-xl bg-sky-600 text-white text-[11px] font-semibold border border-sky-500 shadow-sm';
+        } else {
+          sb.className = 'pressable py-2 px-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-700 text-[11px] font-medium border border-slate-200';
+        }
+      });
 
       // 1 Unified AI Eco Button + All TCL Home Feature Buttons
       setToggleCard('btnAiEco', 'stateAiEco', ac.ai_eco_savein);
       setToggleCard('btnTurbo', 'stateTurbo', ac.turbo_mode);
-      setToggleCard('btnVSwing', 'stateVSwing', ac.vertical_swing, 'Bergerak', 'Tetap');
       setToggleCard('btnSleep', 'stateSleep', ac.sleep_mode > 0);
       setToggleCard('btnHealthy', 'stateHealthy', ac.healthy);
       setToggleCard('btnScreen', 'stateScreen', ac.screen_display, 'Menyala', 'Mati');
@@ -1001,9 +1214,9 @@
         const gb = document.getElementById('genBtn' + g);
         if (!gb) return;
         if ((ac.generator_mode || 0) === g) {
-          gb.className = 'pressable py-2 rounded-lg bg-sky-500 text-white text-[11px] font-bold border border-sky-400';
+          gb.className = 'pressable py-2 rounded-lg bg-sky-600 text-white text-[11px] font-bold border border-sky-500 shadow-sm';
         } else {
-          gb.className = 'pressable py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800/80 text-zinc-300 text-[11px] font-semibold border border-zinc-800';
+          gb.className = 'pressable py-2 rounded-lg bg-slate-50 hover:bg-sky-50 text-slate-700 text-[11px] font-semibold border border-slate-200';
         }
       });
 
@@ -1017,19 +1230,19 @@
       const filterEl = document.getElementById('diagFilterStatus');
       if (ac.filter_block_status && ac.filter_block_status > 0) {
         filterEl.innerText = 'Perlu Cuci';
-        filterEl.className = 'text-xs font-bold text-amber-400 mt-0.5';
+        filterEl.className = 'text-xs font-bold text-amber-600 mt-0.5';
       } else {
         filterEl.innerText = 'Bersih';
-        filterEl.className = 'text-xs font-bold text-emerald-400 mt-0.5';
+        filterEl.className = 'text-xs font-bold text-emerald-700 mt-0.5';
       }
 
       const errBadge = document.getElementById('diagErrorBadge');
       if (Array.isArray(ac.error_code) && ac.error_code.length > 0) {
         errBadge.innerText = 'Error: ' + ac.error_code.join(', ');
-        errBadge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 font-semibold';
+        errBadge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 font-semibold';
       } else {
         errBadge.innerText = 'Normal';
-        errBadge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 font-medium';
+        errBadge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold';
       }
 
       document.getElementById('diagAiWorkTime').innerText = data.ac_energy?.today_ai_work_str || '--';
@@ -1040,10 +1253,10 @@
       if (data.history && data.history.length > 0) {
         const listEl = document.getElementById('historyList');
         listEl.innerHTML = data.history.map(h =>
-          `<div class="flex justify-between py-1.5 border-b border-zinc-800/60">
-            <span class="text-zinc-400">${h.time}</span>
-            <span class="text-zinc-300">Suhu <b class="text-zinc-100">${h.room_temp ?? '--'}&deg;C</b> (Target ${h.target_temp ?? '--'}&deg;C)</span>
-            <span class="text-emerald-400 font-semibold">${h.watts ?? '--'} W</span>
+          `<div class="flex justify-between py-1.5 border-b border-slate-100">
+            <span class="text-slate-400">${h.time}</span>
+            <span class="text-slate-600">Suhu <b class="text-slate-800">${h.room_temp ?? '--'}&deg;C</b> (Target ${h.target_temp ?? '--'}&deg;C)</span>
+            <span class="text-emerald-600 font-semibold">${h.watts ?? '--'} W</span>
           </div>`
         ).join('');
       }
@@ -1054,13 +1267,13 @@
       const lbl = document.getElementById(labelId);
       if (!btn || !lbl) return;
       if (active) {
-        btn.className = 'pressable p-3 rounded-xl bg-sky-500/15 border border-sky-500/45 text-left';
+        btn.className = 'pressable p-3 rounded-xl bg-sky-50 border border-sky-300 text-left shadow-sm';
         lbl.innerText = onText;
-        lbl.className = 'text-[11px] text-sky-400 font-semibold mt-1';
+        lbl.className = 'text-[11px] text-sky-600 font-semibold mt-1';
       } else {
-        btn.className = 'pressable p-3 rounded-xl bg-zinc-900 hover:bg-zinc-800/70 border border-zinc-800 text-left';
+        btn.className = 'pressable p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-left';
         lbl.innerText = offText;
-        lbl.className = 'text-[11px] text-zinc-400 mt-1';
+        lbl.className = 'text-[11px] text-slate-500 mt-1';
       }
     }
 
@@ -1099,6 +1312,10 @@
       }
     }
 
+    function setVerticalSwingMode(windOn, dirCode) {
+      setCommand({ verticalWind: windOn, verticalSwitch: windOn, verticalDirection: dirCode });
+    }
+
     function toggleAiEco() {
       const isEco = currentState.ac?.ai_eco_savein;
       const nextVal = isEco ? 0 : 1;
@@ -1113,18 +1330,6 @@
       } else {
         setCommand({ turbo: 0 });
       }
-    }
-
-    function toggleVerticalSwing() {
-      const isSw = currentState.ac?.vertical_swing;
-      const nextVal = isSw ? 0 : 1;
-      setCommand({ verticalWind: nextVal, verticalDirection: nextVal ? 1 : 8 });
-    }
-
-    function toggleHorizontalSwing() {
-      const isSw = currentState.ac?.horizontal_swing;
-      const nextVal = isSw ? 0 : 1;
-      setCommand({ horizontalWind: nextVal, horizontalDirection: nextVal ? 1 : 8 });
     }
 
     function toggleSleep() {
@@ -1146,8 +1351,8 @@
       setCommand({ [field]: nextVal });
     }
 
-    loadConfigIntoForm();
-    refreshAll();
+    // Always start locked until password is entered
+    showLoginOverlay();
     scheduleHourlyAndMidnightChartRefresh();
     setInterval(async () => {
       if (!appToken) return;
