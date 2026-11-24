@@ -380,25 +380,6 @@
         </div>
       </div>
 
-      <!-- Mode Swing Atas-Bawah Lengkap (Sesuai Aplikasi TCL Home) -->
-      <div class="mt-4 pt-3.5 border-t border-slate-100">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs text-slate-500 font-medium">Mode Swing Atas-Bawah</span>
-          <span id="swingModeLabel" class="text-xs font-semibold text-sky-600">Ayun Penuh</span>
-        </div>
-        <div class="grid grid-cols-3 gap-1.5">
-          <button id="swingBtn1" onclick="setVerticalSwingMode(1, 1)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Ayun Penuh</button>
-          <button id="swingBtn2" onclick="setVerticalSwingMode(1, 2)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Ayun Atas</button>
-          <button id="swingBtn3" onclick="setVerticalSwingMode(1, 3)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Ayun Bawah</button>
-          <button id="swingBtn9" onclick="setVerticalSwingMode(0, 9)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Tetap Paling Atas</button>
-          <button id="swingBtn10" onclick="setVerticalSwingMode(0, 10)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Tetap Atas</button>
-          <button id="swingBtn11" onclick="setVerticalSwingMode(0, 11)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Tetap Tengah</button>
-          <button id="swingBtn12" onclick="setVerticalSwingMode(0, 12)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Tetap Bawah</button>
-          <button id="swingBtn13" onclick="setVerticalSwingMode(0, 13)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Tetap Paling Bawah</button>
-          <button id="swingBtn8" onclick="setVerticalSwingMode(0, 8)" class="pressable py-2 px-2 rounded-xl bg-slate-50 text-slate-700 text-[11px] font-semibold border border-slate-200">Swing Mati</button>
-        </div>
-      </div>
-
       <!-- Tombol Fitur Lengkap Sesuai Aplikasi TCL Home (1 Tombol AI Eco Terpadu) -->
       <div class="mt-4 pt-3.5 border-t border-slate-100">
         <div class="text-xs text-slate-500 font-medium mb-2">Fitur &amp; Mode Pintar TCL Home</div>
@@ -417,6 +398,14 @@
               <span>Turbo</span>
             </div>
             <div id="stateTurbo" class="text-[11px] text-slate-500 mt-1">Nonaktif</div>
+          </button>
+
+          <button id="btnVSwing" onclick="toggleModal('swingModal')" class="pressable p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+              <svg class="w-3.5 h-3.5 text-sky-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"></path><path d="m7 9 5-5 5 5"></path></svg>
+              <span>Swing</span>
+            </div>
+            <div id="stateVSwing" class="text-[11px] text-slate-500 mt-1 truncate">Ayun Penuh</div>
           </button>
 
           <button id="btnSleep" onclick="toggleSleep()" class="pressable p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
@@ -548,6 +537,119 @@
       </div>
     </section>
   </main>
+
+  <!-- Swing Mode Picker Modal (Opens only when Swing button is clicked) -->
+  <div id="swingModal" onclick="if(event.target===this) toggleModal('swingModal')" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+    <div class="surface-card max-w-sm w-full p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-slate-800">Pilih Mode Swing AC</h2>
+          <p class="text-[11px] text-slate-500 mt-0.5">Arah hembusan angin atas-bawah</p>
+        </div>
+        <button onclick="toggleModal('swingModal')" class="pressable px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-800 text-xs">Tutup</button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <!-- 1: Ayun Penuh -->
+        <button id="swingBtn1" onclick="setVerticalSwingMode(1, 1)" class="pressable p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center gap-1.5 text-center">
+          <svg class="w-11 h-9" viewBox="0 0 48 38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="14" height="8" rx="2"></rect>
+            <path d="M18 11 L38 11" stroke-dasharray="2 2"></path>
+            <path d="M17 12 L34 22"></path>
+            <path d="M15 13 L26 32" stroke-dasharray="2 2"></path>
+            <path d="M36 14 C37 21 34 27 29 31"></path>
+            <path d="M34 16 L36 14 L38 16"></path>
+            <path d="M29 28 L29 31 L32 30"></path>
+          </svg>
+          <span class="text-[11px] font-semibold leading-tight">Ayun Penuh</span>
+        </button>
+
+        <!-- 2: Ayun Atas -->
+        <button id="swingBtn2" onclick="setVerticalSwingMode(1, 2)" class="pressable p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center gap-1.5 text-center">
+          <svg class="w-11 h-9" viewBox="0 0 48 38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="14" height="8" rx="2"></rect>
+            <path d="M18 10 L39 10"></path>
+            <path d="M17 12 L36 20"></path>
+            <path d="M39 12 C39 16 38 18 36 20"></path>
+            <path d="M37 14 L39 12 L41 14"></path>
+          </svg>
+          <span class="text-[11px] font-semibold leading-tight">Ayun Atas</span>
+        </button>
+
+        <!-- 3: Ayun Bawah -->
+        <button id="swingBtn3" onclick="setVerticalSwingMode(1, 3)" class="pressable p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center gap-1.5 text-center">
+          <svg class="w-11 h-9" viewBox="0 0 48 38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="14" height="8" rx="2"></rect>
+            <path d="M17 12 L34 23"></path>
+            <path d="M15 13 L24 33"></path>
+            <path d="M33 25 C31 28 28 31 25 32"></path>
+            <path d="M25 29 L25 32 L28 32"></path>
+          </svg>
+          <span class="text-[11px] font-semibold leading-tight">Ayun Bawah</span>
+        </button>
+
+        <!-- 9: Paling Atas -->
+        <button id="swingBtn9" onclick="setVerticalSwingMode(0, 9)" class="pressable p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center gap-1.5 text-center">
+          <svg class="w-11 h-9" viewBox="0 0 48 38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="14" height="8" rx="2"></rect>
+            <path d="M18 10 L41 10" stroke-width="2.2"></path>
+            <path d="M37 7 L41 10 L37 13"></path>
+          </svg>
+          <span class="text-[11px] font-semibold leading-tight">Paling Atas</span>
+        </button>
+
+        <!-- 10: Atas -->
+        <button id="swingBtn10" onclick="setVerticalSwingMode(0, 10)" class="pressable p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center gap-1.5 text-center">
+          <svg class="w-11 h-9" viewBox="0 0 48 38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="14" height="8" rx="2"></rect>
+            <path d="M18 11 L39 18" stroke-width="2.2"></path>
+            <path d="M35 14 L39 18 L34 19"></path>
+          </svg>
+          <span class="text-[11px] font-semibold leading-tight">Tetap Atas</span>
+        </button>
+
+        <!-- 11: Tengah -->
+        <button id="swingBtn11" onclick="setVerticalSwingMode(0, 11)" class="pressable p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center gap-1.5 text-center">
+          <svg class="w-11 h-9" viewBox="0 0 48 38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="14" height="8" rx="2"></rect>
+            <path d="M17 12 L35 25" stroke-width="2.2"></path>
+            <path d="M34 21 L35 25 L30 25"></path>
+          </svg>
+          <span class="text-[11px] font-semibold leading-tight">Tengah</span>
+        </button>
+
+        <!-- 12: Bawah -->
+        <button id="swingBtn12" onclick="setVerticalSwingMode(0, 12)" class="pressable p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center gap-1.5 text-center">
+          <svg class="w-11 h-9" viewBox="0 0 48 38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="14" height="8" rx="2"></rect>
+            <path d="M16 13 L29 31" stroke-width="2.2"></path>
+            <path d="M29 27 L29 31 L25 30"></path>
+          </svg>
+          <span class="text-[11px] font-semibold leading-tight">Tetap Bawah</span>
+        </button>
+
+        <!-- 13: Paling Bawah -->
+        <button id="swingBtn13" onclick="setVerticalSwingMode(0, 13)" class="pressable p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center gap-1.5 text-center">
+          <svg class="w-11 h-9" viewBox="0 0 48 38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="14" height="8" rx="2"></rect>
+            <path d="M14 13 L19 33" stroke-width="2.2"></path>
+            <path d="M21 29 L19 33 L16 30"></path>
+          </svg>
+          <span class="text-[11px] font-semibold leading-tight">Paling Bawah</span>
+        </button>
+
+        <!-- 8: Mati -->
+        <button id="swingBtn8" onclick="setVerticalSwingMode(0, 8)" class="pressable p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center gap-1.5 text-center">
+          <svg class="w-11 h-9" viewBox="0 0 48 38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="14" height="8" rx="2"></rect>
+            <circle cx="30" cy="23" r="8"></circle>
+            <path d="M25 18 L35 28"></path>
+          </svg>
+          <span class="text-[11px] font-semibold leading-tight">Mati</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Change Password Modal -->
   <div id="passwordModal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1166,27 +1268,30 @@
         }
       }
 
-      // Highlight Active Vertical Swing Mode (TCL Home modes)
+      // Highlight Active Vertical Swing Mode (TCL Home modes inside Swing Modal + Swing Card)
       const swingNames = {
         1: 'Ayun Penuh',
         2: 'Ayun Atas',
         3: 'Ayun Bawah',
-        8: 'Swing Mati',
-        9: 'Tetap Paling Atas',
+        8: 'Mati',
+        9: 'Paling Atas',
         10: 'Tetap Atas',
-        11: 'Tetap Tengah',
+        11: 'Tengah',
         12: 'Tetap Bawah',
-        13: 'Tetap Paling Bawah'
+        13: 'Paling Bawah'
       };
       const vDir = ac.vertical_direction ?? (ac.vertical_swing ? 1 : 8);
-      document.getElementById('swingModeLabel').innerText = swingNames[vDir] || (ac.vertical_swing ? 'Ayun Penuh' : 'Swing Mati');
+      const activeSwingText = swingNames[vDir] || (ac.vertical_swing ? 'Ayun Penuh' : 'Mati');
+      const isSwingActive = ac.vertical_swing || (vDir !== 8);
+      setToggleCard('btnVSwing', 'stateVSwing', isSwingActive, activeSwingText, 'Mati');
+
       [1, 2, 3, 8, 9, 10, 11, 12, 13].forEach(code => {
         const sb = document.getElementById('swingBtn' + code);
         if (!sb) return;
         if (vDir === code) {
-          sb.className = 'pressable py-2 px-2 rounded-xl bg-sky-600 text-white text-[11px] font-semibold border border-sky-500 shadow-sm';
+          sb.className = 'pressable p-2.5 rounded-xl bg-sky-600 text-white border border-sky-500 shadow-sm flex flex-col items-center gap-1.5 text-center';
         } else {
-          sb.className = 'pressable py-2 px-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-700 text-[11px] font-medium border border-slate-200';
+          sb.className = 'pressable p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-700 border border-slate-200 flex flex-col items-center gap-1.5 text-center';
         }
       });
 
@@ -1314,6 +1419,10 @@
 
     function setVerticalSwingMode(windOn, dirCode) {
       setCommand({ verticalWind: windOn, verticalSwitch: windOn, verticalDirection: dirCode });
+      const modal = document.getElementById('swingModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        modal.classList.add('hidden');
+      }
     }
 
     function toggleAiEco() {
